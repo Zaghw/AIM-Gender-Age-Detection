@@ -80,7 +80,7 @@ for index, row in imdb_df.iterrows():
     # Write preprocessed image to Preprocessed Dataset
     cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
 
-    print("IMDB: ", index, end='\r')
+    print("IMDB: ", index)
 
 # Preprocess wiki
 for index, row in wiki_df.iterrows():
@@ -97,7 +97,7 @@ for index, row in wiki_df.iterrows():
     # Write preprocessed image to Preprocessed Dataset
     cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
 
-    print("WIKI: ", index, end='\r')
+    print("WIKI: ", index)
 
 preprocessed_df.to_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv")
 
