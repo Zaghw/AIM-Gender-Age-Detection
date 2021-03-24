@@ -110,9 +110,10 @@ classEdges = [13, 25, 35, 50]
 desiredDist = np.asarray([32.3, 31.7, 21.9, 14.1], dtype=float)  # Distribution of each class as a percentage of the dataset
 genderMajToMinRatio = 1.1  # Maximum Majority Class to Minority Class ratio
 classMajToMinRatio = 1.5  # Maximum Majority Class to Minority Class ratio
+PREPROCESSED_CSV_PATH = "../Datasets/IMDBWIKI/Preprocessed/CSVs/"
 
 # Read preprocessed dataset and divide into desired classes
-preprocessedDataset = pd.read_csv("./CSV Files/preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row
+preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row
 classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, classEdges)
 
 # Prepare test, validation, and training dataset DFs
@@ -161,11 +162,8 @@ for i in range(len(classesDFs)):
     trainDataset = trainDataset.append(classesDFs[i][0])
     trainDataset = trainDataset.append(classesDFs[i][1])
 
-
-
-
-testDataset.to_csv("./CSV Files/test_dataset.csv")
-validDataset.to_csv("./CSV Files/valid_dataset.csv")
-trainDataset.to_csv("./CSV Files/train_dataset.csv")
+testDataset.to_csv(PREPROCESSED_CSV_PATH + "test_dataset.csv")
+validDataset.to_csv(PREPROCESSED_CSV_PATH + "valid_dataset.csv")
+trainDataset.to_csv(PREPROCESSED_CSV_PATH + "train_dataset.csv")
 
 
