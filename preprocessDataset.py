@@ -18,7 +18,7 @@ nTimesToUpsample = 1 # for low quality images
 margin = 0 # percentage of the original bounding square width to be added
 
 # Read the filtered imdb and wiki CSVs and create final dataframe that will combine both
-    imdb_df = pd.read_csv(ORIGINAL_CSV_PATH + "imdb.csv")
+imdb_df = pd.read_csv(ORIGINAL_CSV_PATH + "imdb.csv")
 wiki_df = pd.read_csv(ORIGINAL_CSV_PATH + "wiki.csv")
 preprocessed_df = pd.DataFrame(columns=["genders", "ages", "img_paths"])
 
