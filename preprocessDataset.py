@@ -24,8 +24,7 @@ preprocessed_df = pd.DataFrame(columns=["genders", "ages", "img_paths"])
 
 
 def preprocessImage(img, nTimesToUpsample, margin):
-    detectedFaces = face_recognition.face_locations(cv2.cvtColor(img, cv2.COLOR_BGR2RGB),
-                                                    number_of_times_to_upsample=nTimesToUpsample, model="cnn")
+    detectedFaces = face_recognition.face_locations(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), number_of_times_to_upsample=nTimesToUpsample, model="cnn")
     # Filter images with multiple/no detected faces
     if len(detectedFaces) != 1:
         return detectedFaces, None
