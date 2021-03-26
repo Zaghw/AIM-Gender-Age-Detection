@@ -20,7 +20,7 @@ if __name__ == "__main__":
     VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
     TEST_CSV_PATH = PREPROCESSED_CSV_PATH + "test_dataset.csv"
 
-    OUT_PATH = "../TrainedModels/Model2/"
+    OUT_PATH = "../TrainedModels/Model1/"
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     ##########################
 
     # Hyperparameters
-    learning_rate = 0.001
+    learning_rate = 0.0005
     num_epochs = 200
 
     # Architecture
