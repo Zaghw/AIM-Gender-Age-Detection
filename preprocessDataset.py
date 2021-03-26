@@ -69,40 +69,40 @@ def preprocessImage(img, nTimesToUpsample, margin):
 
     return detectedFaces, face
 
-#
-# # Preprocess imdb
-# for index, row in imdb_df.iterrows():
-#     # Read image and detect faces
-#     img = cv2.imread(IMDB_IMAGES_PATH + row["img_paths"])
-#     # Preprocess image
-#     detectedFaces, face = preprocessImage(img, nTimesToUpsample, margin)
-#     # Filter images with multiple/no detected faces
-#     if len(detectedFaces) != 1:
-#         continue
-#     # Append row to preprocessed_df
-#     row["img_paths"] = row["img_paths"][3:]  # remove the internal folder from the image path
-#     preprocessed_df = preprocessed_df.append(row)
-#     # Write preprocessed image to Preprocessed Dataset
-#     cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
-#
-#     print("IMDB: ", index)
-#
-# # Preprocess wiki
-# for index, row in wiki_df.iterrows():
-#     # Read image and detect faces
-#     img = cv2.imread(WIKI_IMAGES_PATH + row["img_paths"])
-#     # Preprocess image
-#     detectedFaces, face = preprocessImage(img, nTimesToUpsample, margin)
-#     # Filter images with multiple/no detected faces
-#     if len(detectedFaces) != 1:
-#         continue
-#     # Append row to preprocessed_df
-#     row["img_paths"] = row["img_paths"][3:]  # remove the internal folder from the image path
-#     preprocessed_df = preprocessed_df.append(row)
-#     # Write preprocessed image to Preprocessed Dataset
-#     cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
-#
-#     print("WIKI: ", index)
+
+# Preprocess imdb
+for index, row in imdb_df.iterrows():
+    # Read image and detect faces
+    img = cv2.imread(IMDB_IMAGES_PATH + row["img_paths"])
+    # Preprocess image
+    detectedFaces, face = preprocessImage(img, nTimesToUpsample, margin)
+    # Filter images with multiple/no detected faces
+    if len(detectedFaces) != 1:
+        continue
+    # Append row to preprocessed_df
+    row["img_paths"] = row["img_paths"][3:]  # remove the internal folder from the image path
+    preprocessed_df = preprocessed_df.append(row)
+    # Write preprocessed image to Preprocessed Dataset
+    cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
+
+    print("IMDB: ", index)
+
+# Preprocess wiki
+for index, row in wiki_df.iterrows():
+    # Read image and detect faces
+    img = cv2.imread(WIKI_IMAGES_PATH + row["img_paths"])
+    # Preprocess image
+    detectedFaces, face = preprocessImage(img, nTimesToUpsample, margin)
+    # Filter images with multiple/no detected faces
+    if len(detectedFaces) != 1:
+        continue
+    # Append row to preprocessed_df
+    row["img_paths"] = row["img_paths"][3:]  # remove the internal folder from the image path
+    preprocessed_df = preprocessed_df.append(row)
+    # Write preprocessed image to Preprocessed Dataset
+    cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
+
+    print("WIKI: ", index)
 
 # Preprocess UTKFace
 count = 0
