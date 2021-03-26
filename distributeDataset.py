@@ -102,6 +102,9 @@ def balanceClasses(classes, classMajToMinRatio):
 
     return balancedClasses
 
+# Path variables
+DATASETS_PATH = "../Datasets/"
+PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
 
 # Define dataset parameters
 TEST_SPLIT = 0.05  # percentage of original dataset to be used for testing
@@ -110,7 +113,6 @@ classEdges = [13, 25, 35, 50]
 desiredDist = np.asarray([32.3, 31.7, 21.9, 14.1], dtype=float)  # Distribution of each class as a percentage of the dataset
 genderMajToMinRatio = 1.1  # Maximum Majority Class to Minority Class ratio
 classMajToMinRatio = 1.5  # Maximum Majority Class to Minority Class ratio
-PREPROCESSED_CSV_PATH = "../Datasets/IMDBWIKI/Preprocessed/CSVs/"
 
 # Read preprocessed dataset and divide into desired classes
 preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row

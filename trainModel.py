@@ -12,12 +12,15 @@ from resnetModel import resnet34
 
 if __name__ == "__main__":
 
-    # Set path variables
-    TRAIN_CSV_PATH = './CSV Files/train_dataset.csv'
-    VALID_CSV_PATH = './CSV Files/valid_dataset.csv'
-    TEST_CSV_PATH = './CSV Files/test_dataset.csv'
-    IMAGE_PATH = '../Attempt 2 - Dataset/Preprocessed Dataset/'
-    OUT_PATH = "./Trained Models/Model2/"
+    # Path variables
+    DATASETS_PATH = "../Datasets/"
+    PREPROCESSED_IMAGES_PATH = DATASETS_PATH + "Preprocessed/Images/"
+    PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
+    TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
+    VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
+    TEST_CSV_PATH = PREPROCESSED_CSV_PATH + "test_dataset.csv"
+
+    OUT_PATH = "../TrainedModels/Model2/"
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
 
@@ -77,7 +80,7 @@ if __name__ == "__main__":
                                            transforms.ToTensor()])
 
     train_dataset = IMDBWIKIDataset(csv_path=TRAIN_CSV_PATH,
-                                    img_dir=IMAGE_PATH,
+                                    img_dir=PREPROCESSED_IMAGES_PATH,
                                     NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                     transform=custom_transform)
 
@@ -86,12 +89,12 @@ if __name__ == "__main__":
                                            transforms.ToTensor()])
 
     test_dataset = IMDBWIKIDataset(csv_path=TEST_CSV_PATH,
-                                   img_dir=IMAGE_PATH,
+                                   img_dir=PREPROCESSED_IMAGES_PATH,
                                    NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                    transform=custom_transform2)
 
     valid_dataset = IMDBWIKIDataset(csv_path=VALID_CSV_PATH,
-                                    img_dir=IMAGE_PATH,
+                                    img_dir=PREPROCESSED_IMAGES_PATH,
                                     NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                     transform=custom_transform2)
 
