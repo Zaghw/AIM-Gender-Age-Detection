@@ -46,6 +46,7 @@ if __name__ == "__main__":
     header.append('Task Importance Weight: %s' % IMP_WEIGHT)
     header.append('Output Path: %s' % OUT_PATH)
     header.append('Script: %s' % sys.argv[0])
+    header.append('Data Augmentation: Horizontal Flipping')
 
     with open(LOGFILE, 'w') as f:
         for entry in header:
@@ -77,6 +78,7 @@ if __name__ == "__main__":
 
     custom_transform = transforms.Compose([transforms.Resize((128, 128)),
                                            transforms.RandomCrop((120, 120)),
+                                           transforms.RandomHorizontalFlip(p=0.5),
                                            transforms.ToTensor()])
 
     train_dataset = IMDBWIKIDataset(csv_path=TRAIN_CSV_PATH,
