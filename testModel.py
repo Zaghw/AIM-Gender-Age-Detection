@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from IMDBWIKIDataset import IMDBWIKIDataset
-from resnetModel import resnet34
+from oldResnetModel import resnet34
+from resnetModel import resnet
 
 if __name__ == "__main__":
 

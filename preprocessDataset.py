@@ -65,7 +65,7 @@ def preprocessImage(img, nTimesToUpsample, margin):
             right = min(x2 + shift, img_w - 1)
 
     face = img[top:bottom, left:right, :]
-    face = np.array(Image.fromarray(np.uint8(face)).resize((120, 120), Image.ANTIALIAS))
+    face = np.array(Image.fromarray(np.uint8(face)).resize((224, 224), Image.ANTIALIAS))
 
     return detectedFaces, face
 

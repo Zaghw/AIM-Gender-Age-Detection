@@ -8,7 +8,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from IMDBWIKIDataset import IMDBWIKIDataset
-from resnetModel import resnet34
+from oldResnetModel import resnet34
+from resnetModel import resnet
 
 if __name__ == "__main__":
 
@@ -32,6 +33,7 @@ if __name__ == "__main__":
     DEVICE = torch.device("cuda:0")
     IMP_WEIGHT = 0
     EARLY_STOPPING_PATIENCE = 15
+    RESNET_SIZE = "ResNet50"
 
     # Logging
     LOGFILE = os.path.join(OUT_PATH, 'training.log')
@@ -47,6 +49,7 @@ if __name__ == "__main__":
     header.append('Output Path: %s' % OUT_PATH)
     header.append('Script: %s' % sys.argv[0])
     header.append('Data Augmentation: Horizontal Flipping')
+    header.append('ResNetSize: %s' % RESNET_SIZE)
 
     with open(LOGFILE, 'w') as f:
         for entry in header:
@@ -76,8 +79,8 @@ if __name__ == "__main__":
     # Dataset
     ###################
 
-    custom_transform = transforms.Compose([transforms.Resize((128, 128)),
-                                           transforms.RandomCrop((120, 120)),
+    custom_transform = transforms.Compose([transforms.Resize((256, 256)),
+                                           transforms.RandomCrop((224, 224)),
                                            transforms.RandomHorizontalFlip(p=0.5),
                                            transforms.ToTensor()])
 
@@ -86,8 +89,8 @@ if __name__ == "__main__":
                                     NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                     transform=custom_transform)
 
-    custom_transform2 = transforms.Compose([transforms.Resize((128, 128)),
-                                           transforms.CenterCrop((120, 120)),
+    custom_transform2 = transforms.Compose([transforms.Resize((256, 256)),
+                                           transforms.CenterCrop((224, 224)),
                                            transforms.ToTensor()])
 
     test_dataset = IMDBWIKIDataset(csv_path=TEST_CSV_PATH,
@@ -119,7 +122,8 @@ if __name__ == "__main__":
     # MODEL
     ##########################
 
-    model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
+    # model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
+    model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
     model.to(DEVICE)
 
     ###########################################
