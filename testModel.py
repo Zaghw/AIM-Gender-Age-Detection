@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
 
         # WRITE RESULTS TO EXCEL
-        workbook = xlsxwriter.Workbook(dataset_name + 'Results.xlsx')
+        workbook = xlsxwriter.Workbook(OUT_PATH + dataset_name + 'Results.xlsx')
         worksheet = workbook.add_worksheet()
         row = 0
         col = 0
@@ -199,6 +199,8 @@ if __name__ == "__main__":
         worksheet.write(row, col, "Overall Acc:")
         worksheet.write(row, col + 1, overall_acc)
 
+        # Close xlsx
+        workbook.close()
 
     ##########################
     # MODEL
@@ -206,9 +208,9 @@ if __name__ == "__main__":
 
     #model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
     model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
+    model.load_state_dict(torch.load(os.path.join(OUT_PATH, 'best_model.pt')))
     if DATA_PARALLEL:
         model = nn.DataParallel(model)
-    model.load_state_dict(torch.load(os.path.join(OUT_PATH, 'best_model.pt')))
     model.to(DEVICE)
     model.eval()
     with torch.set_grad_enabled(False):

@@ -77,7 +77,7 @@ if __name__ == "__main__":
     header.append('Script: %s' % sys.argv[0])
     header.append('Data Augmentation: Horizontal Flipping')
     header.append('ResNetSize: %s' % RESNET_SIZE)
-    header.append('Batch Size: %s' )
+    header.append('Batch Size: %s' % BATCH_SIZE)
 
     with open(LOGFILE, 'w') as f:
         for entry in header:

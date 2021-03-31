@@ -16,5 +16,3 @@ for item in content:
     worksheet.write(row, column, item)
 
     row += 1
-
-workbook.close()
