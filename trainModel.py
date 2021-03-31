@@ -13,6 +13,10 @@ from resnetModel import resnet
 
 if __name__ == "__main__":
 
+    ##########################
+    # SETTINGS
+    ##########################
+
     # Path variables
     DATASETS_PATH = "../Datasets/"
     PREPROCESSED_IMAGES_PATH = DATASETS_PATH + "Preprocessed/Images/"
@@ -20,7 +24,6 @@ if __name__ == "__main__":
     TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
     VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
     TEST_CSV_PATH = PREPROCESSED_CSV_PATH + "test_dataset.csv"
-
     OUT_PATH = "../TrainedModels/Model1/"
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
@@ -29,13 +32,37 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     RANDOM_SEED = 1
 
+    # GPU settings
     NUM_WORKERS = 3  # Number of processes in charge of preprocessing batches
-    DEVICE = torch.device("cuda:0")
+    DATA_PARALLEL = True
+    CUDA_DEVICE = 0
+    if DATA_PARALLEL:
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cuda:" + str(CUDA_DEVICE))
+
+
     IMP_WEIGHT = 0
     EARLY_STOPPING_PATIENCE = 15
-    RESNET_SIZE = "ResNet50"
 
-    # Logging
+    # Hyperparameters
+    learning_rate = 0.0005
+    num_epochs = 200
+    BATCH_SIZE = 170
+
+    # Architecture
+    NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
+    RESNET_SIZE = "ResNet50"
+    # GRAYSCALE = False
+
+    # Define task importance, used to prioritize the loss of certain classes
+    imp = torch.ones(NUM_AGE_CLASSES-1, dtype=torch.float)
+    imp = imp.to(DEVICE)
+
+    ##########################
+    # LOGGING
+    ##########################
+
     LOGFILE = os.path.join(OUT_PATH, 'training.log')
     TEST_PREDICTIONS = os.path.join(OUT_PATH, 'test_predictions.log')
     TEST_ALLPROBAS = os.path.join(OUT_PATH, 'test_allprobas.tensor')
@@ -50,6 +77,7 @@ if __name__ == "__main__":
     header.append('Script: %s' % sys.argv[0])
     header.append('Data Augmentation: Horizontal Flipping')
     header.append('ResNetSize: %s' % RESNET_SIZE)
+    header.append('Batch Size: %s' )
 
     with open(LOGFILE, 'w') as f:
         for entry in header:
@@ -58,28 +86,11 @@ if __name__ == "__main__":
             f.flush()
 
 
-    ##########################
-    # SETTINGS
-    ##########################
-
-    # Hyperparameters
-    learning_rate = 0.0005
-    num_epochs = 200
-
-    # Architecture
-    NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
-    BATCH_SIZE = 256
-    GRAYSCALE = False
-
-    # Define task importance, used to prioritize the loss of certain classes
-    imp = torch.ones(NUM_AGE_CLASSES-1, dtype=torch.float)
-    imp = imp.to(DEVICE)
-
     ###################
     # Dataset
     ###################
 
-    custom_transform = transforms.Compose([transforms.Resize((256, 256)),
+    custom_transform = transforms.Compose([transforms.Resize((240, 240)),
                                            transforms.RandomCrop((224, 224)),
                                            transforms.RandomHorizontalFlip(p=0.5),
                                            transforms.ToTensor()])
@@ -89,14 +100,9 @@ if __name__ == "__main__":
                                     NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                     transform=custom_transform)
 
-    custom_transform2 = transforms.Compose([transforms.Resize((256, 256)),
+    custom_transform2 = transforms.Compose([transforms.Resize((240, 240)),
                                            transforms.CenterCrop((224, 224)),
                                            transforms.ToTensor()])
-
-    test_dataset = IMDBWIKIDataset(csv_path=TEST_CSV_PATH,
-                                   img_dir=PREPROCESSED_IMAGES_PATH,
-                                   NUM_AGE_CLASSES=NUM_AGE_CLASSES,
-                                   transform=custom_transform2)
 
     valid_dataset = IMDBWIKIDataset(csv_path=VALID_CSV_PATH,
                                     img_dir=PREPROCESSED_IMAGES_PATH,
@@ -113,17 +119,14 @@ if __name__ == "__main__":
                               shuffle=False,
                               num_workers=NUM_WORKERS)
 
-    test_loader = DataLoader(dataset=test_dataset,
-                             batch_size=BATCH_SIZE,
-                             shuffle=False,
-                             num_workers=NUM_WORKERS)
-
     ##########################
     # MODEL
     ##########################
 
     # model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
     model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
+    if DATA_PARALLEL:
+        model = nn.DataParallel(model)
     model.to(DEVICE)
 
     ###########################################
@@ -219,9 +222,7 @@ if __name__ == "__main__":
 
         model.eval()
         with torch.set_grad_enabled(False):
-            valid_mae, valid_mse, valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost = compute_stats(model,
-                                                                                                     valid_loader,
-                                                                                                     device=DEVICE)
+            valid_mae, valid_mse, valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost = compute_stats(model, valid_loader, device=DEVICE)
 
         if valid_cost < best_valid_cost or best_valid_cost == -1:
             best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch = valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch

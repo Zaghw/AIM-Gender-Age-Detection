@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+# https://discuss.pytorch.org/t/modify-resnet50-to-give-multiple-outputs/46905
 
 class ResNet(nn.Module):
     def __init__(self, ResNetSize, num_age_classes):

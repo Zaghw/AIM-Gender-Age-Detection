@@ -1,14 +1,19 @@
 import os
 import torch
 import sys
+import xlsxwriter
 from torch.utils.data import DataLoader
 from torchvision import transforms
+import torch.nn as nn
 
 from IMDBWIKIDataset import IMDBWIKIDataset
-from oldResnetModel import resnet34
 from resnetModel import resnet
 
 if __name__ == "__main__":
+
+    ##########################
+    # SETTINGS
+    ##########################
 
     # Path variables
     DATASETS_PATH = "../Datasets/"
@@ -17,44 +22,29 @@ if __name__ == "__main__":
     TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
     VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
     TEST_CSV_PATH = PREPROCESSED_CSV_PATH + "test_dataset.csv"
-
     OUT_PATH = "../TrainedModels/Model1/"
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
 
     # Make results reproducible
-    #torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.deterministic = True
     RANDOM_SEED = 1
 
     NUM_WORKERS = 3  # Number of processes in charge of preprocessing batches
-    DEVICE = torch.device("cuda:0")
-    IMP_WEIGHT = 0
+    DATA_PARALLEL = True
+    CUDA_DEVICE = 0
+    if DATA_PARALLEL:
+        DEVICE = torch.device("cuda")
+    else:
+        DEVICE = torch.device("cuda:" + str(CUDA_DEVICE))
 
-    # Logging
-    LOGFILE = os.path.join(OUT_PATH, 'testing.log')
-    TEST_PREDICTIONS = os.path.join(OUT_PATH, 'test_predictions.log')
-    TEST_ALLPROBAS = os.path.join(OUT_PATH, 'test_allprobas.tensor')
-
-    header = []
-    header.append('PyTorch Version: %s' % torch.__version__)
-    header.append('CUDA device available: %s' % torch.cuda.is_available())
-    header.append('Using CUDA device: %s' % DEVICE)
-    header.append('Random Seed: %s' % RANDOM_SEED)
-    header.append('Task Importance Weight: %s' % IMP_WEIGHT)
-    header.append('Output Path: %s' % OUT_PATH)
-    header.append('Script: %s' % sys.argv[0])
-
-    with open(LOGFILE, 'w') as f:
-        for entry in header:
-            print(entry)
-            f.write('%s\n' % entry)
-            f.flush()
-
+    # Hyperparameters
+    BATCH_SIZE = 256
 
     # Architecture
     NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
-    BATCH_SIZE = 256
-    GRAYSCALE = False
+    RESNET_SIZE = "ResNet50"
+    #GRAYSCALE = False
 
 
     ###################
@@ -100,14 +90,9 @@ if __name__ == "__main__":
                              num_workers=NUM_WORKERS)
 
     ##########################
-    # MODEL
+    #COMPUTE STATS FUNCTION
     ##########################
-
-    model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
-    model.to(DEVICE)
-
-
-    def compute_stats(model, data_loader, device):
+    def compute_stats(model, data_loader, dataset_name, device):
         age_mae, age_mse, age_acc, gender_acc, overall_acc, num_examples = 0, 0, 0, 0, 0, 0
         age_stats, gender_stats = [], []
 
@@ -165,35 +150,72 @@ if __name__ == "__main__":
             gender_stats[i]["recall"] = gender_stats[i]["true_positives"] / (gender_stats[i]["true_positives"] + gender_stats[i]["false_negatives"])
             gender_stats[i]["f1_score"] = 2 * (gender_stats[i]["precision"] * gender_stats[i]["recall"]) / (gender_stats[i]["precision"] + gender_stats[i]["recall"])
 
-        print("############AGE STATS############")
-        print("AGE MAE:\t", age_mae, "\tAGE MSE:\t", age_mse, "\tAGE ACC:\t", age_acc)
+
+        # WRITE RESULTS TO EXCEL
+        workbook = xlsxwriter.Workbook(dataset_name + 'Results.xlsx')
+        worksheet = workbook.add_worksheet()
+        row = 0
+        col = 0
+
+        # Prepare column headings
+        worksheet.write(row, col + 1, "Precision")
+        worksheet.write(row, col + 2, "Recall")
+        worksheet.write(row, col + 3, "F1-Score")
+        worksheet.write(row, col + 4, "Support")
+
+        # Write Age Results
         for i in range(NUM_AGE_CLASSES):
-            print("CLASS ", i, ":\tPRECISION:\t", age_stats[i]["precision"], "\tRECALL:\t", age_stats[i]["recall"], "\tF1-SCORE:\t", age_stats[i]["f1_score"], "\tSUPPORT:\t", age_stats[i]["total_count"])
+            worksheet.write(row, col, "CLASS" + str(i) + ":")
+            worksheet.write(row, col + 1, age_stats[i]["precision"].__float__())
+            worksheet.write(row, col + 2, age_stats[i]["recall"].__float__())
+            worksheet.write(row, col + 3, age_stats[i]["f1_score"].__float__())
+            worksheet.write(row, col + 4, age_stats[i]["total_count"].__float__())
+            row += 1
+        worksheet.write(row, col, "Age Acc:")
+        worksheet.write(row, col + 1, age_acc)
+        worksheet.write(row, col + 2, "Age MAE:")
+        worksheet.write(row, col + 3, age_mae)
+        worksheet.write(row, col + 4, "Age MSE:")
+        worksheet.write(row, col + 5, age_mse)
+        row += 2
 
-        print("############GENDER STATS############")
-        print("FEMALES:\tPRECISION:\t", gender_stats[0]["precision"], "\tRECALL:\t", gender_stats[0]["recall"], "\tF1-SCORE:\t", gender_stats[0]["f1_score"], "\tSUPPORT:\t", gender_stats[0]["total_count"])
-        print("MALES:\tPRECISION:\t", gender_stats[1]["precision"], "\tRECALL:\t", gender_stats[1]["recall"], "\tF1-SCORE:\t", gender_stats[1]["f1_score"], "\tSUPPORT:\t", gender_stats[0]["total_count"])
-        print("GENDER ACC:\t", gender_acc)
+        # Write Gender Results
+        for i in range(2):
+            if i == 0:
+                gender = "FEMALES:"
+            else:
+                gender = "MALES:"
+            worksheet.write(row, col, gender)
+            worksheet.write(row, col + 1, gender_stats[i]["precision"].__float__())
+            worksheet.write(row, col + 2, gender_stats[i]["recall"].__float__())
+            worksheet.write(row, col + 3, gender_stats[i]["f1_score"].__float__())
+            worksheet.write(row, col + 4, gender_stats[i]["total_count"].__float__())
+            row += 1
+        worksheet.write(row, col, "Gender Acc:")
+        worksheet.write(row, col + 1, gender_acc)
+        row += 2
 
-        print("############OVERALL STATS############")
-        print("OVERALL ACC:\t", overall_acc)
+        # Write Overall Results
+        worksheet.write(row, col, "Overall Acc:")
+        worksheet.write(row, col + 1, overall_acc)
 
 
+    ##########################
+    # MODEL
+    ##########################
 
+    #model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
+    model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
+    if DATA_PARALLEL:
+        model = nn.DataParallel(model)
+    model.to(DEVICE)
     model.load_state_dict(torch.load(os.path.join(OUT_PATH, 'best_model.pt')))
     model.eval()
     with torch.set_grad_enabled(False):
-        print("##############################")
-        print("##########VALIDATION##########")
-        print("##############################")
-        compute_stats(model, valid_loader, device=DEVICE)
-
-        print("##############################")
-        print("###########TESTING############")
-        print("##############################")
-        compute_stats(model, test_loader, device=DEVICE)
-
-        print("##############################")
-        print("###########TRAINING###########")
-        print("##############################")
-        compute_stats(model, train_loader, device=DEVICE)
+        print("Validation Dataset...")
+        compute_stats(model, valid_loader, "Validation", device=DEVICE)
+        print("Testing Dataset...")
+        compute_stats(model, test_loader, "Testing", device=DEVICE)
+        print("Training Dataset...")
+        compute_stats(model, train_loader, "Training", device=DEVICE)
+        print("Finished!")
