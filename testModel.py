@@ -208,8 +208,8 @@ if __name__ == "__main__":
     model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
     if DATA_PARALLEL:
         model = nn.DataParallel(model)
-    model.to(DEVICE)
     model.load_state_dict(torch.load(os.path.join(OUT_PATH, 'best_model.pt')))
+    model.to(DEVICE)
     model.eval()
     with torch.set_grad_enabled(False):
         print("Validation Dataset...")
