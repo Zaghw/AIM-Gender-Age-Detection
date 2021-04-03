@@ -228,7 +228,10 @@ if __name__ == "__main__":
             best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch = valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch
             early_stop_counter = 0
             ########## SAVE MODEL #############
-            torch.save(model.state_dict(), os.path.join(OUT_PATH, 'best_model.pt'))
+            if DATA_PARALLEL:
+                torch.save(model.module.state_dict(), os.path.join(OUT_PATH, 'best_model.pt'))
+            else:
+                torch.save(model.state_dict(), os.path.join(OUT_PATH, 'best_model.pt'))
         else:
             early_stop_counter += 1
             if early_stop_counter > EARLY_STOPPING_PATIENCE:

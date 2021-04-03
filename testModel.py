@@ -51,8 +51,8 @@ if __name__ == "__main__":
     # Dataset
     ###################
 
-    custom_transform = transforms.Compose([transforms.Resize((128, 128)),
-                                           transforms.RandomCrop((120, 120)),
+    custom_transform = transforms.Compose([transforms.Resize((240, 240)),
+                                           transforms.RandomCrop((224, 224)),
                                            transforms.ToTensor()])
 
     train_dataset = IMDBWIKIDataset(csv_path=TRAIN_CSV_PATH,
@@ -60,8 +60,8 @@ if __name__ == "__main__":
                                     NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                     transform=custom_transform)
 
-    custom_transform2 = transforms.Compose([transforms.Resize((128, 128)),
-                                           transforms.CenterCrop((120, 120)),
+    custom_transform2 = transforms.Compose([transforms.Resize((240, 240)),
+                                           transforms.CenterCrop((224, 224)),
                                            transforms.ToTensor()])
 
     test_dataset = IMDBWIKIDataset(csv_path=TEST_CSV_PATH,
@@ -162,6 +162,7 @@ if __name__ == "__main__":
         worksheet.write(row, col + 2, "Recall")
         worksheet.write(row, col + 3, "F1-Score")
         worksheet.write(row, col + 4, "Support")
+        row += 1
 
         # Write Age Results
         for i in range(NUM_AGE_CLASSES):
