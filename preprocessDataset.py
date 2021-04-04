@@ -21,7 +21,7 @@ PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
 
 # PREPROCESSING VARIABLES
 nTimesToUpsample = 1 # for low quality images
-margin = 0 # percentage of the original bounding square width to be added
+margin = 0.25 # percentage of the original bounding square width to be added
 
 # Read the filtered imdb and wiki CSVs and create final dataframe that will contain all preprocessed images
 imdb_df = pd.read_csv(IMDBWIKI_CSV_PATH + "imdb.csv")
