@@ -242,10 +242,10 @@ if __name__ == "__main__":
                     exit()
 
 
-        s = 'STATS: | Current Valid: MAE=%.2f,MSE=%.2f,AGE_ACC=%.2f,GENDER_ACC=%.2f,OVERALL_ACC=%.2f. EPOCH=%d | ' \
-            'Best Valid :MAE=%.2f,MSE=%.2f,AGE_ACC=%.2f,GENDER_ACC=%.2f,OVERALL_ACC=%.2f. EPOCH=%d' % (
-            valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch,
-            best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch)
+        s = 'STATS: | Current Valid: MAE=%.2f,MSE=%.2f,AGE_ACC=%.2f,GENDER_ACC=%.2f,OVERALL_ACC=%.2f, VALID_LOSS=%.2f, EPOCH=%d | ' \
+            'Best Valid :MAE=%.2f,MSE=%.2f,AGE_ACC=%.2f,GENDER_ACC=%.2f,OVERALL_ACC=%.2f, VALID_LOSS=%.2f, EPOCH=%d' % (
+            valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost, epoch,
+            best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_valid_cost, best_epoch)
         print(s)
         with open(LOGFILE, 'a') as f:
             f.write('%s\n' % s)
