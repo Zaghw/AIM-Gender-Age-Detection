@@ -6,6 +6,7 @@ if __name__ == "__main__":
     bestValidCost = -1
 
     for margin in range(0, 51, 5):
+        print("Margin: ", margin)
         preprocessDataset(margin)
         validCost = trainModel()
         if validCost < bestValidCost or bestValidCost == -1:

@@ -216,8 +216,8 @@ def trainModel():
                 s = ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f'
                      % (epoch + 1, num_epochs, batch_idx,
                         len(train_dataset) // BATCH_SIZE, cost))
-                print(s)
-                if not batch_idx % 50:
+                if not batch_idx % 100:
+                    print(s)
                     with open(LOGFILE, 'a') as f:
                         f.write('%s\n' % s)
 

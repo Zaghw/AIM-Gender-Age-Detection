@@ -87,7 +87,8 @@ def preprocessDataset(margin):
         # Write preprocessed image to Preprocessed Dataset
         cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
 
-        print("IMDB: ", index)
+        if index % 100 == 0:
+            print("IMDB: ", index)
 
     # Preprocess wiki
     for index, row in wiki_df.iterrows():
@@ -104,7 +105,8 @@ def preprocessDataset(margin):
         # Write preprocessed image to Preprocessed Dataset
         cv2.imwrite(PREPROCESSED_IMAGES_PATH + row["img_paths"], face)
 
-        print("WIKI: ", index)
+        if index % 100 == 0:
+            print("WIKI: ", index)
 
     # Preprocess UTKFace
     count = 0
@@ -124,6 +126,8 @@ def preprocessDataset(margin):
         cv2.imwrite(PREPROCESSED_IMAGES_PATH + filename, face)
 
         count += 1
-        print("UTKFace: ", count)
+
+        if count % 100 == 0:
+            print("UTKFace: ", count)
 
     preprocessed_df.to_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv")
