@@ -58,11 +58,13 @@ def preprocessDataset(margin, preprocessedFolderName):
     IMDBWIKI_CSV_PATH = IMDBWIKI_PATH + "CSVs/"
 
     UTKFACE_IMAGES_PATH = DATASETS_PATH + "Original/UTKFace/"
-
-    PREPROCESSED_IMAGES_PATH = DATASETS_PATH + preprocessedFolderName + "/Images/"
+    PREPROCESSED_PATH = DATASETS_PATH + preprocessedFolderName
+    if not os.path.exists(PREPROCESSED_PATH):
+        os.mkdir(PREPROCESSED_PATH)
+    PREPROCESSED_IMAGES_PATH = PREPROCESSED_PATH + "/Images/"
     if not os.path.exists(PREPROCESSED_IMAGES_PATH):
         os.mkdir(PREPROCESSED_IMAGES_PATH)
-    PREPROCESSED_CSV_PATH = DATASETS_PATH + preprocessedFolderName + "/CSVs/"
+    PREPROCESSED_CSV_PATH = PREPROCESSED_PATH + "/CSVs/"
     if not os.path.exists(PREPROCESSED_CSV_PATH):
         os.mkdir(PREPROCESSED_CSV_PATH)
 
