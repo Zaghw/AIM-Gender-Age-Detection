@@ -11,7 +11,7 @@ from IMDBWIKIDataset import IMDBWIKIDataset
 from oldResnetModel import resnet34
 from resnetModel import resnet
 
-def trainModel():
+def trainModel(outputFolderName):
 
     # if __name__ == "__main__":
 
@@ -25,7 +25,7 @@ def trainModel():
         PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
         TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
         VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
-        OUT_PATH = "../TrainedModels/MarginResnet50/"
+        OUT_PATH = "../TrainedModels/" + outputFolderName +"/"
         if not os.path.exists(OUT_PATH):
             os.mkdir(OUT_PATH)
 
@@ -34,7 +34,7 @@ def trainModel():
         RANDOM_SEED = 1
 
         # GPU settings
-        NUM_WORKERS = 3  # Number of processes in charge of preprocessing batches
+        NUM_WORKERS = 8  # Number of processes in charge of preprocessing batches
         DATA_PARALLEL = True
         CUDA_DEVICE = 0
         if DATA_PARALLEL:
@@ -48,7 +48,7 @@ def trainModel():
 
         # Hyperparameters
         learning_rate = 0.0005
-        num_epochs = 10
+        num_epochs = 100
         BATCH_SIZE = 170
 
         # Architecture
@@ -243,17 +243,17 @@ def trainModel():
                         exit()
 
 
-            s = 'STATS: | Current Valid: MAE=%.2f,MSE=%.2f,AGE_ACC=%.2f,GENDER_ACC=%.2f,OVERALL_ACC=%.2f, VALID_LOSS=%.2f, EPOCH=%d | ' \
-                'Best Valid :MAE=%.2f,MSE=%.2f,AGE_ACC=%.2f,GENDER_ACC=%.2f,OVERALL_ACC=%.2f, VALID_LOSS=%.2f, EPOCH=%d' % (
+            s = 'STATS: | Current Valid: MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f,GENDER_ACC=%.4f,OVERALL_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d | ' \
+                'Best Valid :MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f,GENDER_ACC=%.4f,OVERALL_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d' % (
                 valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost, epoch,
                 best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_valid_cost, best_epoch)
             print(s)
             with open(LOGFILE, 'a') as f:
                 f.write('%s\n' % s)
 
-            s = 'Time elapsed: %.2f min' % ((time.time() - start_time)/60)
+            s = 'Time elapsed: %.4f min' % ((time.time() - start_time)/60)
             print(s)
             with open(LOGFILE, 'a') as f:
                 f.write('%s\n' % s)
 
-        return best_valid_cost
+        # return best_valid_cost

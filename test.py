@@ -1,18 +1,10 @@
-import xlsxwriter
+bestMargin = -1
+bestValidCost = -1
 
-workbook = xlsxwriter.Workbook('Example2.xlsx')
-worksheet = workbook.add_worksheet()
+for margin in range(0, 51, 5):
+    validCost = 5
+    if validCost < bestValidCost or bestValidCost == -1:
+        bestMargin = margin
+        bestValidCost = validCost
 
-# Start from the first cell.
-# Rows and columns are zero indexed.
-row = 0
-column = 0
-
-content = ["ankit", "rahul", "hola"]
-
-# iterating through content list
-for item in content:
-    # write operation perform
-    worksheet.write(row, column, item)
-
-    row += 1
+print(bestValidCost)
