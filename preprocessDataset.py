@@ -5,7 +5,49 @@ import numpy as np
 from PIL import Image
 import os
 
-def preprocessDataset(margin):
+
+def preprocessImage(img, nTimesToUpsample, margin):
+    detectedFaces = face_recognition.face_locations(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), number_of_times_to_upsample=nTimesToUpsample, model="cnn")
+    # Filter images with multiple/no detected faces
+    if len(detectedFaces) != 1:
+        return detectedFaces, None
+    # Modify face bounding rectangle to become bounding square if possible
+    img_h, img_w, _ = img.shape
+    y1, x2, y2, x1 = detectedFaces[0]
+    width = x2 - x1 - 1
+    height = y2 - y1 - 1
+    diff = height - width
+    shift = int(margin * max(width, height))
+    if (diff > 0):
+        if diff % 2 == 0:  # symmetric
+            top = max(y1 - shift, 0)
+            bottom = min(y2 + shift, img_h - 1)
+            left = max(x1 - shift - int(diff / 2), 0)
+            right = min(x2 + shift + int(diff / 2), img_w - 1)
+        else:
+            top = max(y1 - shift, 0)
+            bottom = min(y2 + shift, img_h - 1)
+            left = max(x1 - shift - int((diff - 1) / 2), 0)
+            right = min(x2 + shift + int((diff + 1) / 2), img_w - 1)
+    elif (diff <= 0):
+        if diff % 2 == 0:  # symmetric
+            top = max(y1 - shift + int(diff / 2), 0)
+            bottom = min(y2 + shift - int(diff / 2), img_h - 1)
+            left = max(x1 - shift, 0)
+            right = min(x2 + shift, img_w - 1)
+        else:
+            top = max(y1 - shift + int((diff - 1) / 2), 0)
+            bottom = min(y2 + shift - int((diff + 1) / 2), img_h - 1)
+            left = max(x1 - shift, 0)
+            right = min(x2 + shift, img_w - 1)
+
+    face = img[top:bottom, left:right, :]
+    face = np.array(Image.fromarray(np.uint8(face)).resize((224, 224), Image.ANTIALIAS))
+
+    return detectedFaces, face
+
+
+def preprocessDataset(margin, preprocessedFolderName):
 
     # PATHS
     DATASETS_PATH = "../Datasets/"
@@ -17,8 +59,13 @@ def preprocessDataset(margin):
 
     UTKFACE_IMAGES_PATH = DATASETS_PATH + "Original/UTKFace/"
 
-    PREPROCESSED_IMAGES_PATH = DATASETS_PATH + "Preprocessed/Images/"
-    PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
+    PREPROCESSED_IMAGES_PATH = DATASETS_PATH + preprocessedFolderName + "/Images/"
+    if not os.path.exists(PREPROCESSED_IMAGES_PATH):
+        os.mkdir(PREPROCESSED_IMAGES_PATH)
+    PREPROCESSED_CSV_PATH = DATASETS_PATH + preprocessedFolderName + "/CSVs/"
+    if not os.path.exists(PREPROCESSED_CSV_PATH):
+        os.mkdir(PREPROCESSED_CSV_PATH)
+
 
 
     # PREPROCESSING VARIABLES
@@ -29,48 +76,6 @@ def preprocessDataset(margin):
     imdb_df = pd.read_csv(IMDBWIKI_CSV_PATH + "imdb.csv")
     wiki_df = pd.read_csv(IMDBWIKI_CSV_PATH + "wiki.csv")
     preprocessed_df = pd.DataFrame(columns=["genders", "ages", "img_paths"])
-
-
-    def preprocessImage(img, nTimesToUpsample, margin):
-        detectedFaces = face_recognition.face_locations(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), number_of_times_to_upsample=nTimesToUpsample, model="cnn")
-        # Filter images with multiple/no detected faces
-        if len(detectedFaces) != 1:
-            return detectedFaces, None
-        # Modify face bounding rectangle to become bounding square if possible
-        img_h, img_w, _ = img.shape
-        y1, x2, y2, x1 = detectedFaces[0]
-        width = x2 - x1 - 1
-        height = y2 - y1 - 1
-        diff = height - width
-        shift = int(margin * max(width, height))
-        if (diff > 0):
-            if diff % 2 == 0:  # symmetric
-                top = max(y1 - shift, 0)
-                bottom = min(y2 + shift, img_h - 1)
-                left = max(x1 - shift - int(diff / 2), 0)
-                right = min(x2 + shift + int(diff / 2), img_w - 1)
-            else:
-                top = max(y1 - shift, 0)
-                bottom = min(y2 + shift, img_h - 1)
-                left = max(x1 - shift - int((diff - 1) / 2), 0)
-                right = min(x2 + shift + int((diff + 1) / 2), img_w - 1)
-        elif (diff <= 0):
-            if diff % 2 == 0:  # symmetric
-                top = max(y1 - shift + int(diff / 2), 0)
-                bottom = min(y2 + shift - int(diff / 2), img_h - 1)
-                left = max(x1 - shift, 0)
-                right = min(x2 + shift, img_w - 1)
-            else:
-                top = max(y1 - shift + int((diff - 1) / 2), 0)
-                bottom = min(y2 + shift - int((diff + 1) / 2), img_h - 1)
-                left = max(x1 - shift, 0)
-                right = min(x2 + shift, img_w - 1)
-
-        face = img[top:bottom, left:right, :]
-        face = np.array(Image.fromarray(np.uint8(face)).resize((224, 224), Image.ANTIALIAS))
-
-        return detectedFaces, face
-
 
     # Preprocess imdb
     for index, row in imdb_df.iterrows():

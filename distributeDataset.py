@@ -102,70 +102,73 @@ def balanceClasses(classes, classMajToMinRatio):
 
     return balancedClasses
 
-# Path variables
-DATASETS_PATH = "../Datasets/"
-PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
 
-# Define dataset parameters
-TEST_SPLIT = 0.05  # percentage of original dataset to be used for testing
-VALID_SPLIT = 0.05  # percentage of dataset remaining after testing is removed
-classEdges = [13, 25, 35, 50]
-desiredDist = np.asarray([32.3, 31.7, 21.9, 14.1], dtype=float)  # Distribution of each class as a percentage of the dataset
-genderMajToMinRatio = 1.1  # Maximum Majority Class to Minority Class ratio
-classMajToMinRatio = 1.5  # Maximum Majority Class to Minority Class ratio
+def distributeDatset(preprocessedFolderName):
 
-# Read preprocessed dataset and divide into desired classes
-preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row
-classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, classEdges)
+    # Path variables
+    DATASETS_PATH = "../Datasets/"
+    PREPROCESSED_CSV_PATH = DATASETS_PATH + preprocessedFolderName + "/CSVs/"
 
-# Prepare test, validation, and training dataset DFs
-testDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
-validDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
-trainDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
-nTest = int(datasetSize * TEST_SPLIT)
-nValid = int((datasetSize - nTest) * VALID_SPLIT)
-nTrain = datasetSize - nTest - nValid
-testClassDist = (nTest * desiredDist / 100).astype(int)
-validClassDist = (nValid * desiredDist / 100).astype(int)
+    # Define dataset parameters
+    TEST_SPLIT = 0.05  # percentage of original dataset to be used for testing
+    VALID_SPLIT = 0.05  # percentage of dataset remaining after testing is removed
+    classEdges = [13, 25, 35, 50]
+    desiredDist = np.asarray([32.3, 31.7, 21.9, 14.1], dtype=float)  # Distribution of each class as a percentage of the dataset
+    genderMajToMinRatio = 1.1  # Maximum Majority Class to Minority Class ratio
+    classMajToMinRatio = 1.5  # Maximum Majority Class to Minority Class ratio
 
-# Sample from original dataset into testing and remove the samples from original dataset
-for index, nSamples in enumerate(testClassDist):
-    # Sample from females and males
-    testClassFemaleSamples = classesDFs[index][0].sample(int(nSamples/2))  # Female samples
-    testClassMaleSamples = classesDFs[index][1].sample(int(nSamples/2))  # Male samples
+    # Read preprocessed dataset and divide into desired classes
+    preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row
+    classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, classEdges)
 
-    # Remove samples from original dataset
-    classesDFs[index][0] = classesDFs[index][0].drop(testClassFemaleSamples.index)
-    classesDFs[index][1] = classesDFs[index][1].drop(testClassMaleSamples.index)
+    # Prepare test, validation, and training dataset DFs
+    testDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
+    validDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
+    trainDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
+    nTest = int(datasetSize * TEST_SPLIT)
+    nValid = int((datasetSize - nTest) * VALID_SPLIT)
+    nTrain = datasetSize - nTest - nValid
+    testClassDist = (nTest * desiredDist / 100).astype(int)
+    validClassDist = (nValid * desiredDist / 100).astype(int)
 
-    # Append samples to test dataset
-    testDataset = testDataset.append(testClassFemaleSamples)
-    testDataset = testDataset.append(testClassMaleSamples)
+    # Sample from original dataset into testing and remove the samples from original dataset
+    for index, nSamples in enumerate(testClassDist):
+        # Sample from females and males
+        testClassFemaleSamples = classesDFs[index][0].sample(int(nSamples/2))  # Female samples
+        testClassMaleSamples = classesDFs[index][1].sample(int(nSamples/2))  # Male samples
 
-# Sample from original dataset into validation and remove the samples from original dataset
-for index, nSamples in enumerate(testClassDist):
-    # Sample from females and males
-    validClassFemaleSamples = classesDFs[index][0].sample(int(nSamples / 2))  # Female samples
-    validClassMaleSamples = classesDFs[index][1].sample(int(nSamples / 2))  # Male samples
+        # Remove samples from original dataset
+        classesDFs[index][0] = classesDFs[index][0].drop(testClassFemaleSamples.index)
+        classesDFs[index][1] = classesDFs[index][1].drop(testClassMaleSamples.index)
 
-    # Remove samples from original dataset
-    classesDFs[index][0] = classesDFs[index][0].drop(validClassFemaleSamples.index)
-    classesDFs[index][1] = classesDFs[index][1].drop(validClassMaleSamples.index)
+        # Append samples to test dataset
+        testDataset = testDataset.append(testClassFemaleSamples)
+        testDataset = testDataset.append(testClassMaleSamples)
 
-    # Append samples to test dataset
-    validDataset = validDataset.append(validClassFemaleSamples)
-    validDataset = validDataset.append(validClassMaleSamples)
+    # Sample from original dataset into validation and remove the samples from original dataset
+    for index, nSamples in enumerate(testClassDist):
+        # Sample from females and males
+        validClassFemaleSamples = classesDFs[index][0].sample(int(nSamples / 2))  # Female samples
+        validClassMaleSamples = classesDFs[index][1].sample(int(nSamples / 2))  # Male samples
 
-# Balance the remaining classes to be used in training
-classesDFs = balanceClasses(balanceGenders(classesDFs, genderMajToMinRatio), classMajToMinRatio)
+        # Remove samples from original dataset
+        classesDFs[index][0] = classesDFs[index][0].drop(validClassFemaleSamples.index)
+        classesDFs[index][1] = classesDFs[index][1].drop(validClassMaleSamples.index)
 
-# Combine remaining classes into training dataset
-for i in range(len(classesDFs)):
-    trainDataset = trainDataset.append(classesDFs[i][0])
-    trainDataset = trainDataset.append(classesDFs[i][1])
+        # Append samples to test dataset
+        validDataset = validDataset.append(validClassFemaleSamples)
+        validDataset = validDataset.append(validClassMaleSamples)
 
-testDataset.to_csv(PREPROCESSED_CSV_PATH + "test_dataset.csv")
-validDataset.to_csv(PREPROCESSED_CSV_PATH + "valid_dataset.csv")
-trainDataset.to_csv(PREPROCESSED_CSV_PATH + "train_dataset.csv")
+    # Balance the remaining classes to be used in training
+    classesDFs = balanceClasses(balanceGenders(classesDFs, genderMajToMinRatio), classMajToMinRatio)
+
+    # Combine remaining classes into training dataset
+    for i in range(len(classesDFs)):
+        trainDataset = trainDataset.append(classesDFs[i][0])
+        trainDataset = trainDataset.append(classesDFs[i][1])
+
+    testDataset.to_csv(PREPROCESSED_CSV_PATH + "test_dataset.csv")
+    validDataset.to_csv(PREPROCESSED_CSV_PATH + "valid_dataset.csv")
+    trainDataset.to_csv(PREPROCESSED_CSV_PATH + "train_dataset.csv")
 
 

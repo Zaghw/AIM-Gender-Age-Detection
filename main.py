@@ -1,7 +1,14 @@
 from preprocessDataset import preprocessDataset
 from trainModel import trainModel
+from distributeDataset import distributeDatset
 
 if __name__ == "__main__":
-    preprocessDataset(25)
-    # validCost = trainModel("ResNet50Margin25")
-    # print("Margin: ", 25, " returned Validation Cost: ", validCost)
+    Margin = 25
+    ResNetSize = "ResNet50"
+    preprocessedFolderName = "Preprocessed-" + str(Margin)
+    outputFolderName = ResNetSize + "Margin" + str(Margin)
+
+    preprocessDataset(Margin, preprocessedFolderName)
+    distributeDatset(preprocessedFolderName)
+    validCost = trainModel(ResNetSize, preprocessedFolderName, outputFolderName)
+    print("Margin: ", Margin, " returned Validation Cost: ", validCost)

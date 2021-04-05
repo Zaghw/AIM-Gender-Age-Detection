@@ -11,7 +11,7 @@ from IMDBWIKIDataset import IMDBWIKIDataset
 from oldResnetModel import resnet34
 from resnetModel import resnet
 
-def trainModel(outputFolderName):
+def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
     # if __name__ == "__main__":
 
@@ -21,8 +21,8 @@ def trainModel(outputFolderName):
 
         # Path variables
         DATASETS_PATH = "../Datasets/"
-        PREPROCESSED_IMAGES_PATH = DATASETS_PATH + "Preprocessed/Images/"
-        PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
+        PREPROCESSED_IMAGES_PATH = DATASETS_PATH + preprocessedFolderName + "/Images/"
+        PREPROCESSED_CSV_PATH = DATASETS_PATH + preprocessedFolderName + "/CSVs/"
         TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
         VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
         OUT_PATH = "../TrainedModels/" + outputFolderName +"/"
@@ -35,12 +35,12 @@ def trainModel(outputFolderName):
 
         # GPU settings
         NUM_WORKERS = 8  # Number of processes in charge of preprocessing batches
-        DATA_PARALLEL = True
+        DATA_PARALLEL = False
         CUDA_DEVICE = 0
         if DATA_PARALLEL:
             DEVICE = torch.device("cuda")
         else:
-            DEVICE = torch.device("cuda:" + str(CUDA_DEVICE))
+            DEVICE = torch.device("cuda")
 
 
         IMP_WEIGHT = 0
@@ -53,7 +53,7 @@ def trainModel(outputFolderName):
 
         # Architecture
         NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
-        RESNET_SIZE = "ResNet50"
+        RESNET_SIZE = ResNetSize
         # GRAYSCALE = False
 
         # Define task importance, used to prioritize the loss of certain classes
@@ -257,3 +257,5 @@ def trainModel(outputFolderName):
                 f.write('%s\n' % s)
 
         # return best_valid_cost
+
+trainModel("ResNet50", "Preprocessed", "TrialResNet")
