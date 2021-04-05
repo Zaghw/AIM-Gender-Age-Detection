@@ -257,5 +257,3 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                 f.write('%s\n' % s)
 
         # return best_valid_cost
-
-trainModel("ResNet50", "Preprocessed", "TrialResNet")
