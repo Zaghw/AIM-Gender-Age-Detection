@@ -169,9 +169,9 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
                 age_acc += torch.sum(correct_age_preds)
 
 
-            age_mae = age_mae.__float__() / num_examples
-            age_mse = age_mse.__float__() / num_examples
-            age_acc = age_acc.__float__() / num_examples
+            age_mae = age_mae.float() / num_examples
+            age_mse = age_mse.float() / num_examples
+            age_acc = age_acc.float() / num_examples
 
             return age_mae, age_mse, age_acc, valid_cost
 
