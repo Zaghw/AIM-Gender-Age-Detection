@@ -226,7 +226,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                 valid_mae, valid_mse, valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost = compute_stats(model, valid_loader, device=DEVICE)
 
             if valid_cost < best_valid_cost:
-                best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch = valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch
+                best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch, best_valid_cost = valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch, valid_cost
                 early_stop_counter = 0
                 ########## SAVE MODEL #############
                 if DATA_PARALLEL:
