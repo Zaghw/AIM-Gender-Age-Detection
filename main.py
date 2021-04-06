@@ -15,6 +15,17 @@ if __name__ == "__main__":
     print("Margin: ", Margin, " returned Validation Cost: ", validCost)
     testModel(ResNetSize, preprocessedFolderName, outputFolderName)
 
+    Margin = 50
+    ResNetSize = "ResNet50"
+    preprocessedFolderName = "Preprocessed-" + str(Margin)
+    outputFolderName = ResNetSize + "Margin" + str(Margin)
+
+    # preprocessDataset(Margin, preprocessedFolderName)
+    # distributeDatset(preprocessedFolderName)
+    validCost = trainModel(ResNetSize, preprocessedFolderName, outputFolderName)
+    print("Margin: ", Margin, " returned Validation Cost: ", validCost)
+    testModel(ResNetSize, preprocessedFolderName, outputFolderName)
+
     Margin = 40
     ResNetSize = "ResNet50"
     preprocessedFolderName = "Preprocessed-" + str(Margin)
@@ -25,3 +36,4 @@ if __name__ == "__main__":
     validCost = trainModel(ResNetSize, preprocessedFolderName, outputFolderName)
     print("Margin: ", Margin, " returned Validation Cost: ", validCost)
     testModel(ResNetSize, preprocessedFolderName, outputFolderName)
+
