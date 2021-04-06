@@ -9,7 +9,8 @@ import torch.nn as nn
 from IMDBWIKIDataset import IMDBWIKIDataset
 from resnetModel import resnet
 
-if __name__ == "__main__":
+def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
+# if __name__ == "__main__":
 
     ##########################
     # SETTINGS
@@ -17,12 +18,12 @@ if __name__ == "__main__":
 
     # Path variables
     DATASETS_PATH = "../Datasets/"
-    PREPROCESSED_IMAGES_PATH = DATASETS_PATH + "Preprocessed/Images/"
-    PREPROCESSED_CSV_PATH = DATASETS_PATH + "Preprocessed/CSVs/"
+    PREPROCESSED_IMAGES_PATH = DATASETS_PATH + preprocessedFolderName + "/Images/"
+    PREPROCESSED_CSV_PATH = DATASETS_PATH + preprocessedFolderName + "/CSVs/"
     TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
     VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
     TEST_CSV_PATH = PREPROCESSED_CSV_PATH + "test_dataset.csv"
-    OUT_PATH = "../TrainedModels/Model1/"
+    OUT_PATH = "../TrainedModels/" + outputFolderName + "/"
     if not os.path.exists(OUT_PATH):
         os.mkdir(OUT_PATH)
 
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 
     # Architecture
     NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
-    RESNET_SIZE = "ResNet50"
+    RESNET_SIZE = ResNetSize
     #GRAYSCALE = False
 
 

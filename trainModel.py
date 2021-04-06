@@ -25,7 +25,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
         PREPROCESSED_CSV_PATH = DATASETS_PATH + preprocessedFolderName + "/CSVs/"
         TRAIN_CSV_PATH = PREPROCESSED_CSV_PATH + "train_dataset.csv"
         VALID_CSV_PATH = PREPROCESSED_CSV_PATH + "valid_dataset.csv"
-        OUT_PATH = "../TrainedModels/" + outputFolderName +"/"
+        OUT_PATH = "../TrainedModels/" + outputFolderName + "/"
         if not os.path.exists(OUT_PATH):
             os.mkdir(OUT_PATH)
 
@@ -48,7 +48,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
         # Hyperparameters
         learning_rate = 0.0005
-        num_epochs = 100
+        num_epochs = 200
         BATCH_SIZE = 170
 
         # Architecture
@@ -240,7 +240,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                         s = "IMPROVEMENT ON VALIDATION SET HAS STALLED...INITIATING EARLY-STOPPING"
                         print(s)
                         f.write('%s\n' % s)
-                        exit()
+                        return
 
 
             s = 'STATS: | Current Valid: MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f,GENDER_ACC=%.4f,OVERALL_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d | ' \

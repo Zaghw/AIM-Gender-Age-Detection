@@ -1,6 +1,7 @@
 from preprocessDataset import preprocessDataset
 from trainModel import trainModel
 from distributeDataset import distributeDatset
+from testModel import testModel
 
 if __name__ == "__main__":
     Margin = 25
@@ -12,3 +13,4 @@ if __name__ == "__main__":
     # distributeDatset(preprocessedFolderName)
     validCost = trainModel(ResNetSize, preprocessedFolderName, outputFolderName)
     print("Margin: ", Margin, " returned Validation Cost: ", validCost)
+    testModel(ResNetSize, preprocessedFolderName, outputFolderName)
