@@ -8,10 +8,9 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from IMDBWIKIDataset import IMDBWIKIDataset
-from oldResnetModel import resnet34
-from resnetModel import resnet
+from AgeOnlyResnetModel import AgeOnlyResnet
 
-def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
+def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
     # if __name__ == "__main__":
 
@@ -123,7 +122,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
         ##########################
 
         # model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
-        model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
+        model = AgeOnlyResnet(RESNET_SIZE, NUM_AGE_CLASSES)
         if DATA_PARALLEL:
             model = nn.DataParallel(model)
         model.to(DEVICE)
@@ -138,8 +137,6 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                    dim=1))
             return torch.mean(val)
 
-        gender_cost_fn = nn.BCELoss()
-
         ###########################################
         # OPTIMIZER
         ###########################################
@@ -149,61 +146,51 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
         def compute_stats(model, data_loader, device):
-            age_mae, age_mse, age_acc, gender_acc, overall_acc, num_examples, valid_cost = 0, 0, 0, 0, 0, 0, 0
+            age_mae, age_mse, age_acc, overall_acc, num_examples, valid_cost = 0, 0, 0, 0, 0, 0
             for i, (images, age_labels, age_levels, gender_labels) in enumerate(data_loader):
 
                 images = images.to(device)
                 age_labels = age_labels.to(device)
                 age_levels = age_levels.to(device)
-                gender_labels = gender_labels.to(device)
 
 
-                age_logits, age_probas, gender_probas = model(images)
+                age_logits, age_probas = model(images)
                 age_cost = age_cost_fn(age_logits, age_levels, imp)
-                gender_cost = gender_cost_fn(gender_probas, gender_labels.float().unsqueeze(1))
-                valid_cost += age_cost + gender_cost
+                valid_cost += age_cost
 
                 predicted_age_levels = age_probas > 0.5
                 predicted_age_labels = torch.sum(predicted_age_levels, dim=1)
-                predicted_gender_labels = gender_probas > 0.5
 
                 correct_age_preds = predicted_age_labels == age_labels
-                correct_gender_preds = predicted_gender_labels.squeeze(1) == gender_labels
 
                 num_examples += age_labels.size(0)
                 age_mae += torch.sum(torch.abs(predicted_age_labels - age_labels))
                 age_mse += torch.sum((predicted_age_labels - age_labels)**2)
                 age_acc += torch.sum(correct_age_preds)
-                gender_acc += torch.sum(correct_gender_preds)
-                overall_acc += torch.sum(torch.logical_and(correct_gender_preds, correct_age_preds))
+
 
             age_mae = age_mae.__float__() / num_examples
             age_mse = age_mse.__float__() / num_examples
             age_acc = age_acc.__float__() / num_examples
-            gender_acc = gender_acc.__float__() / num_examples
-            overall_acc = overall_acc.__float__() / num_examples
 
-            return age_mae, age_mse, age_acc, gender_acc, overall_acc, valid_cost
+            return age_mae, age_mse, age_acc, valid_cost
 
 
         start_time = time.time()
 
-        best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch, best_valid_cost = 999, 999, 0, 0, 0, 0, 99999999
+        best_mae, best_rmse, best_age_acc, best_overall_acc, best_epoch, best_valid_cost = 999, 999, 0, 0, 0, 99999999
         early_stop_counter = 0  # used to count the number of times improvements have stalled on the validation dataset
         for epoch in range(num_epochs):
             model.train()
             for batch_idx, (images, age_labels, age_levels, gender_labels) in enumerate(train_loader):
 
                 images = images.to(DEVICE)
-                age_labels = age_labels.to(DEVICE)
                 age_levels = age_levels.to(DEVICE)
-                gender_labels = gender_labels.to(DEVICE)
 
                 # FORWARD AND BACK PROP
-                age_logits, age_probas, gender_probas = model(images)
+                age_logits, age_probas = model(images)
                 age_cost = age_cost_fn(age_logits, age_levels, imp)
-                gender_cost = gender_cost_fn(gender_probas, gender_labels.float().unsqueeze(1))
-                cost = age_cost + gender_cost
+                cost = age_cost
                 optimizer.zero_grad()
                 cost.backward()
 
@@ -211,9 +198,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                 optimizer.step()
 
                 # LOGGING
-                s = ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f'
-                     % (epoch + 1, num_epochs, batch_idx,
-                        len(train_dataset) // BATCH_SIZE, cost))
+                s = ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f' % (epoch + 1, num_epochs, batch_idx, len(train_dataset) // BATCH_SIZE, cost))
                 if not batch_idx % 100:
                     print(s)
                     with open(LOGFILE, 'a') as f:
@@ -221,10 +206,10 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
             model.eval()
             with torch.set_grad_enabled(False):
-                valid_mae, valid_mse, valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost = compute_stats(model, valid_loader, device=DEVICE)
+                valid_mae, valid_mse, valid_age_acc, valid_cost = compute_stats(model, valid_loader, device=DEVICE)
 
             if valid_cost < best_valid_cost:
-                best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch, best_valid_cost = valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch, valid_cost
+                best_mae, best_rmse, best_age_acc, best_epoch, best_valid_cost = valid_mae, torch.sqrt(valid_mse), valid_age_acc, epoch, valid_cost
                 early_stop_counter = 0
                 ########## SAVE MODEL #############
                 if DATA_PARALLEL:
@@ -238,13 +223,12 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                         s = "IMPROVEMENT ON VALIDATION SET HAS STALLED...INITIATING EARLY-STOPPING"
                         print(s)
                         f.write('%s\n' % s)
-                        return
+                        return best_valid_cost
 
 
-            s = 'STATS: | Current Valid: MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f,GENDER_ACC=%.4f,OVERALL_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d | ' \
-                'Best Valid :MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f,GENDER_ACC=%.4f,OVERALL_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d' % (
-                valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost, epoch,
-                best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_valid_cost, best_epoch)
+            s = 'STATS: | Current Valid: MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d | ' \
+                'Best Valid :MAE=%.4f,MSE=%.4f,AGE_ACC=%.4f, VALID_LOSS=%.4f, EPOCH=%d' % (
+                valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_cost, epoch + 1, best_mae, best_rmse, best_age_acc, best_valid_cost, best_epoch + 1)
             print(s)
             with open(LOGFILE, 'a') as f:
                 f.write('%s\n' % s)
@@ -254,4 +238,4 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
             with open(LOGFILE, 'a') as f:
                 f.write('%s\n' % s)
 
-        # return best_valid_cost
+        return best_valid_cost
