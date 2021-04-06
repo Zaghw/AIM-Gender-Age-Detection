@@ -8,7 +8,7 @@ if __name__ == "__main__":
     preprocessedFolderName = "Preprocessed-" + str(Margin)
     outputFolderName = ResNetSize + "Margin" + str(Margin)
 
-    preprocessDataset(Margin, preprocessedFolderName)
-    distributeDatset(preprocessedFolderName)
+    # preprocessDataset(Margin, preprocessedFolderName)
+    # distributeDatset(preprocessedFolderName)
     validCost = trainModel(ResNetSize, preprocessedFolderName, outputFolderName)
     print("Margin: ", Margin, " returned Validation Cost: ", validCost)

@@ -40,7 +40,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
         if DATA_PARALLEL:
             DEVICE = torch.device("cuda")
         else:
-            DEVICE = torch.device("cuda")
+            DEVICE = torch.device("cuda:" + str(CUDA_DEVICE))
 
 
         IMP_WEIGHT = 0
@@ -190,7 +190,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
         start_time = time.time()
 
-        best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch, best_valid_cost = 999, 999, -1, -1, -1, -1, -1
+        best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch, best_valid_cost = 999, 999, 0, 0, 0, 0, 99999999
         early_stop_counter = 0  # used to count the number of times improvements have stalled on the validation dataset
         for epoch in range(num_epochs):
             model.train()
@@ -225,7 +225,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
             with torch.set_grad_enabled(False):
                 valid_mae, valid_mse, valid_age_acc, valid_gender_acc, valid_overall_acc, valid_cost = compute_stats(model, valid_loader, device=DEVICE)
 
-            if valid_cost < best_valid_cost or best_valid_cost == -1:
+            if valid_cost < best_valid_cost:
                 best_mae, best_rmse, best_age_acc, best_gender_acc, best_overall_acc, best_epoch = valid_mae, torch.sqrt(valid_mse), valid_age_acc, valid_gender_acc, valid_overall_acc, epoch
                 early_stop_counter = 0
                 ########## SAVE MODEL #############
