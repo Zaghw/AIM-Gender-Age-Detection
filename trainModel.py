@@ -35,7 +35,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
         # GPU settings
         NUM_WORKERS = 8  # Number of processes in charge of preprocessing batches
-        DATA_PARALLEL = False
+        DATA_PARALLEL = True
         CUDA_DEVICE = 0
         if DATA_PARALLEL:
             DEVICE = torch.device("cuda")
