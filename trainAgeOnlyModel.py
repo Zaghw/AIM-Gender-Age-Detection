@@ -48,10 +48,12 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
         # Hyperparameters
         learning_rate = 0.0005
         num_epochs = 200
-        BATCH_SIZE = 170
+        BATCH_SIZE = 256
 
         # Architecture
-        NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
+        MIN_AGE = 13
+        MAX_AGE = 100
+        NUM_AGE_CLASSES = MAX_AGE - MIN_AGE + 1  # Four classes with ages (13-24),(25-34),(35-49),(50+)
         RESNET_SIZE = ResNetSize
         # GRAYSCALE = False
 
@@ -96,15 +98,15 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
         train_dataset = IMDBWIKIDataset(csv_path=TRAIN_CSV_PATH,
                                         img_dir=PREPROCESSED_IMAGES_PATH,
                                         NUM_AGE_CLASSES=NUM_AGE_CLASSES,
+                                        MIN_AGE=MIN_AGE,
                                         transform=custom_transform)
 
-        custom_transform2 = transforms.Compose([transforms.Resize((240, 240)),
-                                               transforms.CenterCrop((224, 224)),
-                                               transforms.ToTensor()])
+        custom_transform2 = transforms.Compose([transforms.ToTensor()])
 
         valid_dataset = IMDBWIKIDataset(csv_path=VALID_CSV_PATH,
                                         img_dir=PREPROCESSED_IMAGES_PATH,
                                         NUM_AGE_CLASSES=NUM_AGE_CLASSES,
+                                        MIN_AGE=MIN_AGE,
                                         transform=custom_transform2)
 
         train_loader = DataLoader(dataset=train_dataset,
@@ -159,7 +161,7 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
                 valid_cost += age_cost
 
                 predicted_age_levels = age_probas > 0.5
-                predicted_age_labels = torch.sum(predicted_age_levels, dim=1)
+                predicted_age_labels = torch.sum(predicted_age_levels, dim=1) + MIN_AGE
 
                 correct_age_preds = predicted_age_labels == age_labels
 
@@ -178,7 +180,7 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
         start_time = time.time()
 
-        best_mae, best_rmse, best_age_acc, best_overall_acc, best_epoch, best_valid_cost = 999, 999, 0, 0, 0, 99999999
+        best_mae, best_rmse, best_age_acc, best_overall_acc, best_epoch, best_valid_cost = 999, 999, 0, 0, 0, -1
         early_stop_counter = 0  # used to count the number of times improvements have stalled on the validation dataset
         for epoch in range(num_epochs):
             model.train()
@@ -199,7 +201,7 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
                 # LOGGING
                 s = ('Epoch: %03d/%03d | Batch %04d/%04d | Cost: %.4f' % (epoch + 1, num_epochs, batch_idx, len(train_dataset) // BATCH_SIZE, cost))
-                if not batch_idx % 100:
+                if not batch_idx % 1:
                     print(s)
                     with open(LOGFILE, 'a') as f:
                         f.write('%s\n' % s)
@@ -208,7 +210,7 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
             with torch.set_grad_enabled(False):
                 valid_mae, valid_mse, valid_age_acc, valid_cost = compute_stats(model, valid_loader, device=DEVICE)
 
-            if valid_cost < best_valid_cost:
+            if valid_cost < best_valid_cost or best_valid_cost == -1:
                 best_mae, best_rmse, best_age_acc, best_epoch, best_valid_cost = valid_mae, torch.sqrt(valid_mse), valid_age_acc, epoch, valid_cost
                 early_stop_counter = 0
                 ########## SAVE MODEL #############
@@ -239,3 +241,12 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName):
                 f.write('%s\n' % s)
 
         return best_valid_cost
+
+# Margin = 0
+# ResNetSize = "ResNet34"
+# preprocessedFolderName = "Preprocessed-" + str(Margin)
+# outputFolderName = "AgeOnly" + ResNetSize + "Margin" + str(Margin)
+#
+# # preprocessDataset(Margin, preprocessedFolderName)
+# # distributeDatset(preprocessedFolderName)
+# trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName)

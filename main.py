@@ -1,11 +1,11 @@
 from preprocessDataset import preprocessDataset
-from trainModel import trainModel
+# from trainModel import trainModel
 from distributeDataset import distributeDatset
 from trainAgeOnlyModel import trainAgeOnlyModel
 from testModel import testModel
 
 if __name__ == "__main__":
-    Margin = 25
+    Margin = 0
     ResNetSize = "ResNet50"
     preprocessedFolderName = "Preprocessed-" + str(Margin)
     outputFolderName = "AgeOnly" + ResNetSize + "Margin" + str(Margin)

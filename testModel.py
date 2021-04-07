@@ -61,9 +61,7 @@ def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
                                     NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                     transform=custom_transform)
 
-    custom_transform2 = transforms.Compose([transforms.Resize((240, 240)),
-                                           transforms.CenterCrop((224, 224)),
-                                           transforms.ToTensor()])
+    custom_transform2 = transforms.Compose([transforms.ToTensor()])
 
     test_dataset = IMDBWIKIDataset(csv_path=TEST_CSV_PATH,
                                    img_dir=PREPROCESSED_IMAGES_PATH,

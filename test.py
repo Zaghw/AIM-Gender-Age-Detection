@@ -1,10 +1,3 @@
-bestMargin = -1
-bestValidCost = -1
+import torch
 
-for margin in range(0, 51, 5):
-    validCost = 5
-    if validCost < bestValidCost or bestValidCost == -1:
-        bestMargin = margin
-        bestValidCost = validCost
-
-print(bestValidCost)
+print(torch.cuda.is_available())
