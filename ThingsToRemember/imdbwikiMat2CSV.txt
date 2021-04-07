@@ -1,0 +1,3 @@
+1. Open the .mat files in Matlab
+2. imdb.dob = datetime(imdb.dob, 'ConvertFrom', 'datenum')
+3. writematrix(imdb.photo_taken.'-year(imdb.dob.'), "dob.csv")
