@@ -4,7 +4,7 @@ from PIL import Image
 import os
 import torch
 
-class IMDBWIKIDataset(Dataset):
+class CustomDataset(Dataset):
     """Custom Dataset for loading IMDB-WIKI face images"""
 
     def __init__(self, csv_path, img_dir, NUM_AGE_CLASSES, MIN_AGE, transform=None):

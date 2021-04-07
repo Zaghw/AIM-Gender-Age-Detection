@@ -1,22 +1,28 @@
 import pandas as pd
 import numpy as np
 
-def getClassesDataFrames(originalDF, classEdges):
+def getClassesDataFrames(originalDF, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES):
     classesDFs = []
     datasetSize = 0
-    for index, edge in enumerate(classEdges):
-        if index != len(classEdges) - 1:  # not last class edge
-            newDFFemales = originalDF[(originalDF['ages'] >= edge) & (originalDF['ages'] < classEdges[index + 1]) & (originalDF['genders'] == 0)]
-            newDFMales = originalDF[(originalDF['ages'] >= edge) & (originalDF['ages'] < classEdges[index + 1]) & (originalDF['genders'] == 1)]
+
+    # Append first class
+    newDFFemales = originalDF[(originalDF['ages'] >= MIN_AGE) & (originalDF['ages'] < AGE_SEGMENTS_EDGES[0]) & (originalDF['genders'] == 0)]
+    newDFMales = originalDF[(originalDF['ages'] >= MIN_AGE) & (originalDF['ages'] < AGE_SEGMENTS_EDGES[0]) & (originalDF['genders'] == 1)]
+    classesDFs.append([newDFFemales, newDFMales])
+
+    for index, edge in enumerate(AGE_SEGMENTS_EDGES):
+        if index != len(AGE_SEGMENTS_EDGES) - 1:  # not last class edge
+            newDFFemales = originalDF[(originalDF['ages'] >= edge) & (originalDF['ages'] < AGE_SEGMENTS_EDGES[index + 1]) & (originalDF['genders'] == 0)]
+            newDFMales = originalDF[(originalDF['ages'] >= edge) & (originalDF['ages'] < AGE_SEGMENTS_EDGES[index + 1]) & (originalDF['genders'] == 1)]
         else:
-            newDFFemales = originalDF[(originalDF['ages'] >= edge) & (originalDF['genders'] == 0)]
+            newDFFemales = originalDF[(originalDF['ages'] >= edge) & (originalDF['ages'] < MAX_AGE) & (originalDF['genders'] == 0)]
             newDFMales = originalDF[(originalDF['ages'] >= edge) & (originalDF['genders'] == 1)]
         datasetSize += len(newDFFemales)
         datasetSize += len(newDFMales)
         classesDFs.append([newDFFemales, newDFMales])
     return classesDFs, datasetSize
 
-def getClassesDistribution(classes):
+def printClassesDistribution(classes):
     print("###################################################")
 
     datasetSize = 0
@@ -103,7 +109,7 @@ def balanceClasses(classes, classMajToMinRatio):
     return balancedClasses
 
 
-def distributeDatset(preprocessedFolderName):
+def distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES):
 
     # Path variables
     DATASETS_PATH = "../Datasets/"
@@ -112,14 +118,13 @@ def distributeDatset(preprocessedFolderName):
     # Define dataset parameters
     TEST_SPLIT = 0.05  # percentage of original dataset to be used for testing
     VALID_SPLIT = 0.05  # percentage of dataset remaining after testing is removed
-    classEdges = [13, 25, 35, 50]
     desiredDist = np.asarray([32.3, 31.7, 21.9, 14.1], dtype=float)  # Distribution of each class as a percentage of the dataset
     genderMajToMinRatio = 1.1  # Maximum Majority Class to Minority Class ratio
     classMajToMinRatio = 1.5  # Maximum Majority Class to Minority Class ratio
 
     # Read preprocessed dataset and divide into desired classes
     preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row
-    classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, classEdges)
+    classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, MIN_AGE, AGE_SEGMENTS_EDGES)
 
     # Prepare test, validation, and training dataset DFs
     testDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
@@ -127,7 +132,6 @@ def distributeDatset(preprocessedFolderName):
     trainDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
     nTest = int(datasetSize * TEST_SPLIT)
     nValid = int((datasetSize - nTest) * VALID_SPLIT)
-    nTrain = datasetSize - nTest - nValid
     testClassDist = (nTest * desiredDist / 100).astype(int)
     validClassDist = (nValid * desiredDist / 100).astype(int)
 
@@ -146,7 +150,7 @@ def distributeDatset(preprocessedFolderName):
         testDataset = testDataset.append(testClassMaleSamples)
 
     # Sample from original dataset into validation and remove the samples from original dataset
-    for index, nSamples in enumerate(testClassDist):
+    for index, nSamples in enumerate(validClassDist):
         # Sample from females and males
         validClassFemaleSamples = classesDFs[index][0].sample(int(nSamples / 2))  # Female samples
         validClassMaleSamples = classesDFs[index][1].sample(int(nSamples / 2))  # Male samples
@@ -170,5 +174,3 @@ def distributeDatset(preprocessedFolderName):
     testDataset.to_csv(PREPROCESSED_CSV_PATH + "test_dataset.csv")
     validDataset.to_csv(PREPROCESSED_CSV_PATH + "valid_dataset.csv")
     trainDataset.to_csv(PREPROCESSED_CSV_PATH + "train_dataset.csv")
-
-

@@ -137,4 +137,4 @@ def preprocessDataset(margin, preprocessedFolderName):
         if count % 100 == 0:
             print("UTKFace: ", count)
 
-    preprocessed_df.to_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv")
+    preprocessed_df.to_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index=False)

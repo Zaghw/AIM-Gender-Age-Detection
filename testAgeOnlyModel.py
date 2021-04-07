@@ -1,6 +1,5 @@
 import os
 import torch
-import sys
 import xlsxwriter
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -9,8 +8,8 @@ import torch.nn as nn
 from CustomDataset import CustomDataset
 from resnetModel import resnet
 
-def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
-# if __name__ == "__main__":
+def testModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES):
+
 
     ##########################
     # SETTINGS
@@ -29,7 +28,6 @@ def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
 
     # Make results reproducible
     torch.backends.cudnn.deterministic = True
-    RANDOM_SEED = 1
 
     NUM_WORKERS = 3  # Number of processes in charge of preprocessing batches
     DATA_PARALLEL = True
@@ -43,9 +41,8 @@ def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
     BATCH_SIZE = 256
 
     # Architecture
-    NUM_AGE_CLASSES = 4  # Four classes with ages (13-24),(25-34),(35-49),(50+)
+    NUM_AGE_CLASSES = MAX_AGE - MIN_AGE
     RESNET_SIZE = ResNetSize
-    #GRAYSCALE = False
 
 
     ###################
@@ -92,62 +89,71 @@ def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
     #COMPUTE STATS FUNCTION
     ##########################
     def compute_stats(model, data_loader, dataset_name, device):
-        age_mae, age_mse, age_acc, gender_acc, overall_acc, num_examples = 0, 0, 0, 0, 0, 0
-        age_stats, gender_stats = [], []
+        age_mae, age_mse, age_acc, overall_acc, num_examples = 0, 0, 0, 0, 0
+        age_stats = []
 
         for i in range(NUM_AGE_CLASSES):
             age_stats.append({"total_count": 0, "true_positives": 0, "false_positives": 0, "false_negatives": 0})
-        for i in range(2):
-            gender_stats.append({"total_count": 0, "true_positives": 0, "false_positives": 0, "false_negatives": 0})
+        # for i in range(2):
+        #     gender_stats.append({"total_count": 0, "true_positives": 0, "false_positives": 0, "false_negatives": 0})
 
 
         for i, (images, age_labels, age_levels, gender_labels) in enumerate(data_loader):
 
+            # Move batch to device
             images = images.to(device)
             age_labels = age_labels.to(device)
             gender_labels = gender_labels.to(device)
 
-            age_logits, age_probas, gender_probas = model(images)
+            # Get model predictions
+            age_logits, age_probas = model(images)
             predicted_age_levels = age_probas > 0.5
-            predicted_age_labels = torch.sum(predicted_age_levels, dim=1)
-            predicted_gender_labels = (gender_probas > 0.5).squeeze(1)
+            predicted_age_labels = torch.sum(predicted_age_levels, dim=1) + MIN_AGE
+            # predicted_gender_labels = (gender_probas > 0.5).squeeze(1)
+
+            # Get Age Segments from Age Labels
+            predicted_age_segments = torch.zeros_like(predicted_age_labels)
+            age_segments = torch.zeros_like(predicted_age_labels)
+            for id, segment_edge in enumerate(AGE_SEGMENTS_EDGES):
+                predicted_age_segments[predicted_age_labels >= segment_edge] = id + 1
+                age_segments[age_labels >= segment_edge] = id + 1
 
             for j in range(NUM_AGE_CLASSES):
                 age_stats[j]["total_count"] += torch.sum(age_labels == j)
-                age_stats[j]["true_positives"] += torch.sum(torch.logical_and(age_labels == j, predicted_age_labels == j))
-                age_stats[j]["false_positives"] += torch.sum(torch.logical_and(age_labels != j, predicted_age_labels == j))
-                age_stats[j]["false_negatives"] += torch.sum(torch.logical_and(age_labels == j, predicted_age_labels != j))
-            for j in range(2):
-                gender_stats[j]["total_count"] += torch.sum(gender_labels == j)
-                gender_stats[j]["true_positives"] += torch.sum(torch.logical_and(gender_labels == j, predicted_gender_labels == j))
-                gender_stats[j]["false_positives"] += torch.sum(torch.logical_and(gender_labels != j, predicted_gender_labels == j))
-                gender_stats[j]["false_negatives"] += torch.sum(torch.logical_and(gender_labels == j, predicted_gender_labels != j))
+                age_stats[j]["true_positives"] += torch.sum(torch.logical_and(age_segments == j, predicted_age_segments == j))
+                age_stats[j]["false_positives"] += torch.sum(torch.logical_and(age_segments != j, predicted_age_segments == j))
+                age_stats[j]["false_negatives"] += torch.sum(torch.logical_and(age_segments == j, predicted_age_segments != j))
+            # for j in range(2):
+            #     gender_stats[j]["total_count"] += torch.sum(gender_labels == j)
+            #     gender_stats[j]["true_positives"] += torch.sum(torch.logical_and(gender_labels == j, predicted_gender_labels == j))
+            #     gender_stats[j]["false_positives"] += torch.sum(torch.logical_and(gender_labels != j, predicted_gender_labels == j))
+            #     gender_stats[j]["false_negatives"] += torch.sum(torch.logical_and(gender_labels == j, predicted_gender_labels != j))
 
-            correct_age_preds = predicted_age_labels == age_labels
-            correct_gender_preds = predicted_gender_labels == gender_labels
+            correct_age_preds = predicted_age_segments == age_segments
+            # correct_gender_preds = predicted_gender_labels == gender_labels
 
             num_examples += age_labels.size(0)
             age_mae += torch.sum(torch.abs(predicted_age_labels - age_labels))
             age_mse += torch.sum((predicted_age_labels - age_labels)**2)
             age_acc += torch.sum(correct_age_preds)
-            gender_acc += torch.sum(correct_gender_preds)
-            overall_acc += torch.sum(torch.logical_and(correct_gender_preds, correct_age_preds))
+            # gender_acc += torch.sum(correct_gender_preds)
+            # overall_acc += torch.sum(torch.logical_and(correct_gender_preds, correct_age_preds))
 
         age_mae = age_mae.float() / num_examples
         age_mse = age_mse.float() / num_examples
         age_acc = age_acc.float() / num_examples
-        gender_acc = gender_acc.float() / num_examples
-        overall_acc = overall_acc.float() / num_examples
+        # gender_acc = gender_acc.float() / num_examples
+        # overall_acc = overall_acc.float() / num_examples
 
         for i in range(NUM_AGE_CLASSES):
             age_stats[i]["precision"] = age_stats[i]["true_positives"] / (age_stats[i]["true_positives"] + age_stats[i]["false_positives"])
             age_stats[i]["recall"] = age_stats[i]["true_positives"] / (age_stats[i]["true_positives"] + age_stats[i]["false_negatives"])
             age_stats[i]["f1_score"] = 2 * (age_stats[i]["precision"] * age_stats[i]["recall"]) / (age_stats[i]["precision"] + age_stats[i]["recall"])
 
-        for i in range(2):
-            gender_stats[i]["precision"] = gender_stats[i]["true_positives"] / (gender_stats[i]["true_positives"] + gender_stats[i]["false_positives"])
-            gender_stats[i]["recall"] = gender_stats[i]["true_positives"] / (gender_stats[i]["true_positives"] + gender_stats[i]["false_negatives"])
-            gender_stats[i]["f1_score"] = 2 * (gender_stats[i]["precision"] * gender_stats[i]["recall"]) / (gender_stats[i]["precision"] + gender_stats[i]["recall"])
+        # for i in range(2):
+        #     gender_stats[i]["precision"] = gender_stats[i]["true_positives"] / (gender_stats[i]["true_positives"] + gender_stats[i]["false_positives"])
+        #     gender_stats[i]["recall"] = gender_stats[i]["true_positives"] / (gender_stats[i]["true_positives"] + gender_stats[i]["false_negatives"])
+        #     gender_stats[i]["f1_score"] = 2 * (gender_stats[i]["precision"] * gender_stats[i]["recall"]) / (gender_stats[i]["precision"] + gender_stats[i]["recall"])
 
 
         # WRITE RESULTS TO EXCEL
@@ -179,25 +185,25 @@ def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
         worksheet.write(row, col + 5, age_mse)
         row += 2
 
-        # Write Gender Results
-        for i in range(2):
-            if i == 0:
-                gender = "FEMALES:"
-            else:
-                gender = "MALES:"
-            worksheet.write(row, col, gender)
-            worksheet.write(row, col + 1, gender_stats[i]["precision"].__float__())
-            worksheet.write(row, col + 2, gender_stats[i]["recall"].__float__())
-            worksheet.write(row, col + 3, gender_stats[i]["f1_score"].__float__())
-            worksheet.write(row, col + 4, gender_stats[i]["total_count"].__float__())
-            row += 1
-        worksheet.write(row, col, "Gender Acc:")
-        worksheet.write(row, col + 1, gender_acc)
-        row += 2
-
-        # Write Overall Results
-        worksheet.write(row, col, "Overall Acc:")
-        worksheet.write(row, col + 1, overall_acc)
+        # # Write Gender Results
+        # for i in range(2):
+        #     if i == 0:
+        #         gender = "FEMALES:"
+        #     else:
+        #         gender = "MALES:"
+        #     worksheet.write(row, col, gender)
+        #     worksheet.write(row, col + 1, gender_stats[i]["precision"].__float__())
+        #     worksheet.write(row, col + 2, gender_stats[i]["recall"].__float__())
+        #     worksheet.write(row, col + 3, gender_stats[i]["f1_score"].__float__())
+        #     worksheet.write(row, col + 4, gender_stats[i]["total_count"].__float__())
+        #     row += 1
+        # worksheet.write(row, col, "Gender Acc:")
+        # worksheet.write(row, col + 1, gender_acc)
+        # row += 2
+        #
+        # # Write Overall Results
+        # worksheet.write(row, col, "Overall Acc:")
+        # worksheet.write(row, col + 1, overall_acc)
 
         # Close xlsx
         workbook.close()
@@ -206,7 +212,6 @@ def testModel(ResNetSize, preprocessedFolderName, outputFolderName):
     # MODEL
     ##########################
 
-    #model = resnet34(NUM_AGE_CLASSES, GRAYSCALE)
     model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
     model.load_state_dict(torch.load(os.path.join(OUT_PATH, 'best_model.pt')))
     if DATA_PARALLEL:

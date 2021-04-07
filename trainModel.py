@@ -7,7 +7,7 @@ import sys
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from IMDBWIKIDataset import IMDBWIKIDataset
+from CustomDataset import CustomDataset
 from oldResnetModel import resnet34
 from resnetModel import resnet
 
@@ -94,7 +94,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                                                transforms.RandomHorizontalFlip(p=0.5),
                                                transforms.ToTensor()])
 
-        train_dataset = IMDBWIKIDataset(csv_path=TRAIN_CSV_PATH,
+        train_dataset = CustomDataset(csv_path=TRAIN_CSV_PATH,
                                         img_dir=PREPROCESSED_IMAGES_PATH,
                                         NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                         transform=custom_transform)
@@ -103,7 +103,7 @@ def trainModel(ResNetSize, preprocessedFolderName, outputFolderName):
                                                transforms.CenterCrop((224, 224)),
                                                transforms.ToTensor()])
 
-        valid_dataset = IMDBWIKIDataset(csv_path=VALID_CSV_PATH,
+        valid_dataset = CustomDataset(csv_path=VALID_CSV_PATH,
                                         img_dir=PREPROCESSED_IMAGES_PATH,
                                         NUM_AGE_CLASSES=NUM_AGE_CLASSES,
                                         transform=custom_transform2)
