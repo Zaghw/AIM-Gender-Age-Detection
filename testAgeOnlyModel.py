@@ -54,21 +54,24 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
                                            transforms.ToTensor()])
 
     train_dataset = CustomDataset(csv_path=TRAIN_CSV_PATH,
-                                    img_dir=PREPROCESSED_IMAGES_PATH,
-                                    NUM_AGE_CLASSES=NUM_AGE_CLASSES,
-                                    transform=custom_transform)
+                                  img_dir=PREPROCESSED_IMAGES_PATH,
+                                  NUM_AGE_CLASSES=NUM_AGE_CLASSES,
+                                  MIN_AGE=MIN_AGE,
+                                  transform=custom_transform)
 
     custom_transform2 = transforms.Compose([transforms.ToTensor()])
 
     test_dataset = CustomDataset(csv_path=TEST_CSV_PATH,
-                                   img_dir=PREPROCESSED_IMAGES_PATH,
-                                   NUM_AGE_CLASSES=NUM_AGE_CLASSES,
-                                   transform=custom_transform2)
+                                 img_dir=PREPROCESSED_IMAGES_PATH,
+                                 NUM_AGE_CLASSES=NUM_AGE_CLASSES,
+                                 MIN_AGE=MIN_AGE,
+                                 transform=custom_transform2)
 
     valid_dataset = CustomDataset(csv_path=VALID_CSV_PATH,
-                                    img_dir=PREPROCESSED_IMAGES_PATH,
-                                    NUM_AGE_CLASSES=NUM_AGE_CLASSES,
-                                    transform=custom_transform2)
+                                  img_dir=PREPROCESSED_IMAGES_PATH,
+                                  NUM_AGE_CLASSES=NUM_AGE_CLASSES,
+                                  MIN_AGE=MIN_AGE,
+                                  transform=custom_transform2)
 
     train_loader = DataLoader(dataset=train_dataset,
                               batch_size=BATCH_SIZE,
