@@ -96,7 +96,7 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
         age_mae, age_mse, age_acc, overall_acc, num_examples = 0, 0, 0, 0, 0
         age_stats = []
 
-        for i in range(NUM_AGE_CLASSES):
+        for i in range(len(AGE_SEGMENTS_EDGES) + 1):
             age_stats.append({"total_count": 0, "true_positives": 0, "false_positives": 0, "false_negatives": 0})
         # for i in range(2):
         #     gender_stats.append({"total_count": 0, "true_positives": 0, "false_positives": 0, "false_negatives": 0})
@@ -122,8 +122,8 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
                 predicted_age_segments[predicted_age_labels >= segment_edge] = id + 1
                 age_segments[age_labels >= segment_edge] = id + 1
 
-            for j in range(NUM_AGE_CLASSES):
-                age_stats[j]["total_count"] += torch.sum(age_labels == j)
+            for j in range(len(AGE_SEGMENTS_EDGES) + 1):
+                age_stats[j]["total_count"] += torch.sum(age_segments == j)
                 age_stats[j]["true_positives"] += torch.sum(torch.logical_and(age_segments == j, predicted_age_segments == j))
                 age_stats[j]["false_positives"] += torch.sum(torch.logical_and(age_segments != j, predicted_age_segments == j))
                 age_stats[j]["false_negatives"] += torch.sum(torch.logical_and(age_segments == j, predicted_age_segments != j))
@@ -149,7 +149,7 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
         # gender_acc = gender_acc.float() / num_examples
         # overall_acc = overall_acc.float() / num_examples
 
-        for i in range(NUM_AGE_CLASSES):
+        for i in range(len(AGE_SEGMENTS_EDGES) + 1):
             age_stats[i]["precision"] = age_stats[i]["true_positives"] / (age_stats[i]["true_positives"] + age_stats[i]["false_positives"])
             age_stats[i]["recall"] = age_stats[i]["true_positives"] / (age_stats[i]["true_positives"] + age_stats[i]["false_negatives"])
             age_stats[i]["f1_score"] = 2 * (age_stats[i]["precision"] * age_stats[i]["recall"]) / (age_stats[i]["precision"] + age_stats[i]["recall"])
@@ -174,7 +174,7 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
         row += 1
 
         # Write Age Results
-        for i in range(NUM_AGE_CLASSES):
+        for i in range(len(AGE_SEGMENTS_EDGES) + 1):
             worksheet.write(row, col, "CLASS" + str(i) + ":")
             worksheet.write(row, col + 1, age_stats[i]["precision"].__float__())
             worksheet.write(row, col + 2, age_stats[i]["recall"].__float__())
