@@ -185,8 +185,8 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
         worksheet.write(row, col + 1, age_acc)
         worksheet.write(row, col + 2, "Age MAE:")
         worksheet.write(row, col + 3, age_mae)
-        worksheet.write(row, col + 4, "Age MSE:")
-        worksheet.write(row, col + 5, age_mse)
+        worksheet.write(row, col + 4, "Age RMSE:")
+        worksheet.write(row, col + 5, torch.sqrt(age_mse))
         row += 2
 
         # # Write Gender Results
