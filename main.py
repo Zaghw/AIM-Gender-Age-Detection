@@ -3,6 +3,7 @@ from preprocessDataset import preprocessDataset
 from distributeDataset import distributeDatset
 from trainAgeOnlyModel import trainAgeOnlyModel
 from testModel import testModel
+from testAgeOnlyModel import testAgeOnlyModel
 
 if __name__ == "__main__":
     Margin = 0
@@ -17,6 +18,6 @@ if __name__ == "__main__":
     # distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
     validCost = trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE)
     print("Margin: ", Margin, " returned Validation Cost: ", validCost)
-    testModel(ResNetSize, preprocessedFolderName, outputFolderName)
+    testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
 
 

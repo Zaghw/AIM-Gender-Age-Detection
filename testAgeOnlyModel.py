@@ -8,7 +8,7 @@ import torch.nn as nn
 from CustomDataset import CustomDataset
 from resnetModel import resnet
 
-def testModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES):
+def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES):
 
 
     ##########################
