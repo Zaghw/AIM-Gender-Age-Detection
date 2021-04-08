@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
     # preprocessDataset(Margin, preprocessedFolderName)
     # distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
-    validCost = trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE)
-    print("Margin: ", Margin, " returned Validation Cost: ", validCost)
+    # validCost = trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE)
+    # print("Margin: ", Margin, " returned Validation Cost: ", validCost)
     testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
 
 
