@@ -6,7 +6,7 @@ from testModel import testModel
 from testAgeOnlyModel import testAgeOnlyModel
 
 if __name__ == "__main__":
-    Margin = 0
+    Margin = 25
     ResNetSize = "ResNet34"  # "ResNet34" or "ResNet50" or "ResNet101" or "ResNet152"
     preprocessedFolderName = "Preprocessed-" + str(Margin)
     outputFolderName = "AgeOnly" + ResNetSize + "Margin" + str(Margin)

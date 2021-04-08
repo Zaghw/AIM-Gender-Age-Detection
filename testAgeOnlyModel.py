@@ -7,6 +7,7 @@ import torch.nn as nn
 
 from CustomDataset import CustomDataset
 from resnetModel import resnet
+from AgeOnlyResnetModel import AgeOnlyResnet
 
 def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES):
 
@@ -215,7 +216,7 @@ def testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_A
     # MODEL
     ##########################
 
-    model = resnet(RESNET_SIZE, NUM_AGE_CLASSES)
+    model = AgeOnlyResnet(RESNET_SIZE, NUM_AGE_CLASSES)
     model.load_state_dict(torch.load(os.path.join(OUT_PATH, 'best_model.pt')))
     if DATA_PARALLEL:
         model = nn.DataParallel(model)
