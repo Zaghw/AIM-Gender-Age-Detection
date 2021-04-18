@@ -123,8 +123,8 @@ def distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGE
     classMajToMinRatio = 1.5  # Maximum Majority Class to Minority Class ratio
 
     # Read preprocessed dataset and divide into desired classes
-    preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index_col=0).reset_index(drop=True) #ensure index values are unique for each row
-    classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, MIN_AGE, AGE_SEGMENTS_EDGES)
+    preprocessedDataset = pd.read_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv").reset_index(drop=True) #ensure index values are unique for each row
+    classesDFs, datasetSize = getClassesDataFrames(preprocessedDataset, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
 
     # Prepare test, validation, and training dataset DFs
     testDataset = pd.DataFrame(columns=["genders", "ages", "img_paths"])
@@ -171,6 +171,6 @@ def distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGE
         trainDataset = trainDataset.append(classesDFs[i][0])
         trainDataset = trainDataset.append(classesDFs[i][1])
 
-    testDataset.to_csv(PREPROCESSED_CSV_PATH + "test_dataset.csv")
-    validDataset.to_csv(PREPROCESSED_CSV_PATH + "valid_dataset.csv")
-    trainDataset.to_csv(PREPROCESSED_CSV_PATH + "train_dataset.csv")
+    testDataset.to_csv(PREPROCESSED_CSV_PATH + "test_dataset.csv", index=False)
+    validDataset.to_csv(PREPROCESSED_CSV_PATH + "valid_dataset.csv", index=False)
+    trainDataset.to_csv(PREPROCESSED_CSV_PATH + "train_dataset.csv", index=False)

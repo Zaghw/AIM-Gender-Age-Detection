@@ -46,13 +46,12 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_
 
     # Hyperparameters
     learning_rate = 0.0005
-    num_epochs = 200
+    num_epochs = 100
     BATCH_SIZE = 256
 
     # Architecture
     NUM_AGE_CLASSES = MAX_AGE - MIN_AGE  # MIN_AGE inclusive, MAX_AGE exclusive
     RESNET_SIZE = ResNetSize
-    # GRAYSCALE = False
 
     # Define task importance, used to prioritize the loss of certain classes
     imp = torch.ones(NUM_AGE_CLASSES-1, dtype=torch.float)
@@ -131,9 +130,7 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_
     ###########################################
 
     def age_cost_fn(age_logits, age_levels, imp):
-        val = (-torch.sum((F.logsigmoid(age_logits)*age_levels
-                          + (F.logsigmoid(age_logits) - age_logits)*(1-age_levels))*imp,
-               dim=1))
+        val = (-torch.sum((F.logsigmoid(age_logits)*age_levels + (F.logsigmoid(age_logits) - age_logits)*(1-age_levels)) * imp, dim=1))
         return torch.mean(val)
 
     ###########################################
