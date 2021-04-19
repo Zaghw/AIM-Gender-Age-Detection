@@ -47,7 +47,7 @@ def preprocessImage(img, nTimesToUpsample, margin):
     return detectedFaces, face
 
 
-def preprocessDataset(margin, preprocessedFolderName):
+def preprocessUTKFace(margin, preprocessedFolderName):
 
     # PATHS
     DATASETS_PATH = "../Datasets/"
