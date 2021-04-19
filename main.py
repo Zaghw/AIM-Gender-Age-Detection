@@ -15,8 +15,8 @@ if __name__ == "__main__":
     MAX_AGE = 117  # Exclusive
     AGE_SEGMENTS_EDGES = [25, 35, 50]  # (MIN_AGE,24), (25,34), (35,49), (50,MAX_AGE)
 
-    # preprocessUTKFace(Margin, preprocessedFolderName)
-    # distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
+    preprocessUTKFace(Margin, preprocessedFolderName)
+    distributeDatset(preprocessedFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)
     validCost = trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE)
     print("Margin: ", Margin, " returned Validation Cost: ", validCost)
     testAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_AGE, MAX_AGE, AGE_SEGMENTS_EDGES)

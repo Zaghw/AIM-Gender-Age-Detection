@@ -47,7 +47,7 @@ def preprocessImage(img, nTimesToUpsample, margin):
     return detectedFaces, face
 
 
-def preprocessUTKFace(margin, preprocessedFolderName):
+def preprocessDataset(margin, preprocessedFolderName):
 
     # PATHS
     DATASETS_PATH = "../Datasets/"
@@ -71,21 +71,27 @@ def preprocessUTKFace(margin, preprocessedFolderName):
     # Read the filtered imdb and wiki CSVs and create final dataframe that will contain all preprocessed images
     preprocessed_df = pd.DataFrame(columns=["genders", "ages", "img_paths"])
 
+
     # Preprocess UTKFace
     count = 0
     for filename in os.listdir(UTKFACE_IMAGES_PATH):
         # Read image and detect faces
-        #img = cv2.imread(UTKFACE_IMAGES_PATH + filename)
+        img = cv2.imread(UTKFACE_IMAGES_PATH + filename)
+        # Preprocess image
+        detectedFaces, face = preprocessImage(img, nTimesToUpsample, margin)
+        # Filter images with multiple/no detected faces
+        if len(detectedFaces) != 1:
+            continue
         # Append row to preprocessed_df
         age = filename.split("_")[0]
         gender = str(1 - int(filename.split("_")[1]))
         preprocessed_df = preprocessed_df.append({"genders": gender, "ages": age, "img_paths": filename}, ignore_index=True)
         # Write preprocessed image to Preprocessed Dataset
-        # cv2.imwrite(PREPROCESSED_IMAGES_PATH + filename, img)
+        cv2.imwrite(PREPROCESSED_IMAGES_PATH + filename, face)
 
         count += 1
 
-        if count % 10 == 0:
+        if count % 100 == 0:
             print("UTKFace: ", count)
 
     preprocessed_df.to_csv(PREPROCESSED_CSV_PATH + "preprocessedDataset.csv", index=False)
