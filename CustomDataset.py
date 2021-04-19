@@ -9,7 +9,7 @@ class CustomDataset(Dataset):
 
     def __init__(self, csv_path, img_dir, NUM_AGE_CLASSES, MIN_AGE, transform=None):
 
-        df = pd.read_csv(csv_path, index_col=0)
+        df = pd.read_csv(csv_path)
         self.img_dir = img_dir
         self.csv_path = csv_path
         self.img_names = df['img_paths'].values
