@@ -17,14 +17,16 @@ class ResNet(nn.Module):
         num_features = self.model_resnet.fc.in_features
         self.model_resnet.fc = nn.Identity()
         # Output for age
-        self.fc1 = nn.Linear(num_features, 1, bias=False)
+        self.fc1 = nn.Linear(num_features, 256)
+        self.fc2 = nn.Linear(256, 1, bias=False)
         self.linear_1_bias = nn.Parameter(torch.zeros(num_age_classes - 1).float())
 
     def forward(self, x):
         x = self.model_resnet(x)
 
         # Age output
-        age_logits = self.fc1(x)
+        x = self.fc1(x)
+        age_logits = self.fc2(x)
         age_logits = age_logits + self.linear_1_bias
         age_probas = torch.sigmoid(age_logits)
 

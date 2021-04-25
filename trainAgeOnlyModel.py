@@ -46,7 +46,7 @@ def trainAgeOnlyModel(ResNetSize, preprocessedFolderName, outputFolderName, MIN_
 
     # Hyperparameters
     learning_rate = 0.0005
-    num_epochs = 100
+    num_epochs = 10000
     BATCH_SIZE = 256
 
     # Architecture
